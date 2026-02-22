@@ -1,0 +1,157 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "confirm": "Confirm",
+    "loading": "Loading…",
+    "error": "Something went wrong. Please try again.",
+    "remove": "Remove",
+    "close": "Close",
+    "optional": "optional",
+    "required": "Required",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  },
+  "nav": {
+    "home": "Expenses",
+    "yourProfile": "Your profile"
+  },
+  "groups": {
+    "title": "My Groups",
+    "empty": {
+      "title": "No groups yet",
+      "description": "Create a group to start tracking shared expenses with friends, family, or colleagues.",
+      "cta": "Create your first group",
+      "hint": "Or ask someone to invite you to their group"
+    },
+    "new": {
+      "title": "New Group",
+      "namePlaceholder": "e.g. Weekend Trip",
+      "nameLabel": "Group name",
+      "nameRequired": "Group name is required",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What is this group for?",
+      "colorLabel": "Accent color",
+      "membersLabel": "Members",
+      "membersHint": "Add at least one member",
+      "memberNamePlaceholder": "Member name",
+      "addMember": "Add member",
+      "memberRequired": "Add at least one member",
+      "submit": "Create group"
+    },
+    "createSuccess": "Group created",
+    "deleteConfirm": "Delete group \"{name}\"? This will permanently delete all expenses and cannot be undone.",
+    "deleteSuccess": "Group deleted",
+    "fab": "Create new group",
+    "members": "{count} members",
+    "expenses": "{count} expenses",
+    "total": "Total {amount}"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "empty": {
+      "title": "No expenses yet",
+      "description": "Add your first expense to start tracking who owes what.",
+      "cta": "Add expense"
+    },
+    "add": {
+      "title": "Add Expense",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Dinner at La Tasca",
+      "titleRequired": "Title is required",
+      "amountLabel": "Amount",
+      "amountRequired": "Amount is required",
+      "amountInvalid": "Enter a valid amount greater than 0",
+      "dateLabel": "Date",
+      "dateRequired": "Date is required",
+      "paidByLabel": "Paid by",
+      "categoryLabel": "Category",
+      "splitLabel": "Split among",
+      "splitCustomHint": "Amounts must add up to {total}",
+      "splitInvalid": "Amounts must sum to {total}",
+      "submit": "Save expense"
+    },
+    "edit": {
+      "title": "Edit Expense"
+    },
+    "deleteConfirm": "Delete \"{title}\"? This cannot be undone.",
+    "fab": "Add expense",
+    "paidBy": "Paid by {name}",
+    "yourShare": "Your share {amount}",
+    "loadMore": "Load more",
+    "recent": "Recent Expenses",
+    "seeAll": "See all"
+  },
+  "balance": {
+    "title": "Balances",
+    "owedToYou": "is owed",
+    "youOwe": "owes",
+    "settled": "Settled up",
+    "settlements": {
+      "title": "Suggested settlements",
+      "pays": "pays",
+      "markSettled": "Mark settled",
+      "noSettlements": "All settled up!",
+      "record": "Record settlement"
+    }
+  },
+  "categories": {
+    "title": "By Category",
+    "addButton": "Add category",
+    "add": {
+      "title": "Add Category",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Groceries",
+      "nameRequired": "Name is required",
+      "colorLabel": "Color",
+      "iconLabel": "Icon",
+      "submit": "Create category"
+    },
+    "icons": {
+      "general": "General",
+      "food": "Food",
+      "home": "Home",
+      "transport": "Transport",
+      "travel": "Travel",
+      "entertainment": "Entertainment",
+      "shopping": "Shopping",
+      "health": "Health",
+      "education": "Education",
+      "utilities": "Utilities",
+      "drinks": "Drinks",
+      "work": "Work",
+      "sports": "Sports",
+      "gifts": "Gifts",
+      "tech": "Tech"
+    },
+    "noSpending": "No spending yet"
+  },
+  "members": {
+    "title": "Members",
+    "add": {
+      "label": "Add member",
+      "placeholder": "Member name",
+      "required": "Enter a member name"
+    },
+    "remove": "Remove member",
+    "removeConfirm": "Remove {name} from this group?",
+    "maxReached": "Maximum 10 members per group"
+  },
+  "settings": {
+    "title": "Settings",
+    "groupInfo": {
+      "title": "Group info",
+      "save": "Save changes",
+      "saved": "Changes saved"
+    },
+    "dangerZone": {
+      "title": "Danger zone",
+      "deleteGroup": "Delete group",
+      "deleteDescription": "Permanently delete this group and all its expenses."
+    }
+  }
+}

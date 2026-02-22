@@ -1,0 +1,154 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "back": "Volver",
+    "confirm": "Confirmar",
+    "loading": "Cargando…",
+    "error": "Algo salió mal. Por favor, inténtalo de nuevo.",
+    "remove": "Eliminar",
+    "close": "Cerrar",
+    "optional": "opcional",
+    "required": "Requerido",
+    "showMore": "Mostrar más",
+    "showLess": "Mostrar menos"
+  },
+  "nav": {
+    "home": "Gastos",
+    "yourProfile": "Tu perfil"
+  },
+  "groups": {
+    "title": "Mis grupos",
+    "empty": {
+      "title": "Aún no hay grupos",
+      "description": "Crea un grupo para empezar a registrar gastos compartidos con amigos, familia o compañeros.",
+      "cta": "Crear tu primer grupo",
+      "hint": "O pide a alguien que te invite a su grupo"
+    },
+    "new": {
+      "title": "Nuevo grupo",
+      "namePlaceholder": "ej. Viaje de fin de semana",
+      "nameLabel": "Nombre del grupo",
+      "nameRequired": "El nombre del grupo es obligatorio",
+      "descriptionLabel": "Descripción",
+      "descriptionPlaceholder": "¿Para qué es este grupo?",
+      "colorLabel": "Color de acento",
+      "membersLabel": "Miembros",
+      "membersHint": "Añade al menos un miembro",
+      "memberNamePlaceholder": "Nombre del miembro",
+      "addMember": "Añadir miembro",
+      "memberRequired": "Añade al menos un miembro",
+      "submit": "Crear grupo"
+    },
+    "createSuccess": "Grupo creado",
+    "deleteConfirm": "¿Eliminar el grupo \"{name}\"? Esto eliminará todos los gastos permanentemente y no se puede deshacer.",
+    "deleteSuccess": "Grupo eliminado",
+    "fab": "Crear nuevo grupo",
+    "members": "{count} miembros",
+    "expenses": "{count} gastos",
+    "total": "Total {amount}"
+  },
+  "expenses": {
+    "title": "Gastos",
+    "empty": {
+      "title": "Aún no hay gastos",
+      "description": "Añade tu primer gasto para empezar a registrar quién debe qué.",
+      "cta": "Añadir gasto"
+    },
+    "add": {
+      "title": "Añadir gasto",
+      "titleLabel": "Título",
+      "titlePlaceholder": "ej. Cena en La Tasca",
+      "titleRequired": "El título es obligatorio",
+      "amountLabel": "Importe",
+      "amountRequired": "El importe es obligatorio",
+      "amountInvalid": "Introduce un importe válido mayor que 0",
+      "dateLabel": "Fecha",
+      "dateRequired": "La fecha es obligatoria",
+      "paidByLabel": "Pagado por",
+      "categoryLabel": "Categoría",
+      "splitLabel": "Dividir entre",
+      "splitCustomHint": "Los importes deben sumar {total}",
+      "splitInvalid": "Los importes deben sumar {total}",
+      "submit": "Guardar gasto"
+    },
+    "edit": {
+      "title": "Editar gasto"
+    },
+    "deleteConfirm": "¿Eliminar \"{title}\"? Esta acción no se puede deshacer.",
+    "fab": "Añadir gasto",
+    "paidBy": "Pagado por {name}",
+    "yourShare": "Tu parte {amount}",
+    "loadMore": "Cargar más"
+  },
+  "balance": {
+    "title": "Saldos",
+    "owedToYou": "le deben",
+    "youOwe": "debe",
+    "settled": "Al día",
+    "settlements": {
+      "title": "Liquidaciones sugeridas",
+      "pays": "paga",
+      "markSettled": "Marcar como pagado",
+      "noSettlements": "¡Todo al día!"
+    }
+  },
+  "categories": {
+    "title": "Por categoría",
+    "addButton": "Añadir categoría",
+    "add": {
+      "title": "Añadir categoría",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "ej. Supermercado",
+      "nameRequired": "El nombre es obligatorio",
+      "colorLabel": "Color",
+      "iconLabel": "Icono",
+      "submit": "Crear categoría"
+    },
+    "icons": {
+      "general": "General",
+      "food": "Comida",
+      "home": "Hogar",
+      "transport": "Transporte",
+      "travel": "Viajes",
+      "entertainment": "Entretenimiento",
+      "shopping": "Compras",
+      "health": "Salud",
+      "education": "Educación",
+      "utilities": "Servicios",
+      "drinks": "Bebidas",
+      "work": "Trabajo",
+      "sports": "Deportes",
+      "gifts": "Regalos",
+      "tech": "Tecnología"
+    },
+    "noSpending": "Sin gastos aún"
+  },
+  "members": {
+    "title": "Miembros",
+    "add": {
+      "label": "Añadir miembro",
+      "placeholder": "Nombre del miembro",
+      "required": "Introduce un nombre de miembro"
+    },
+    "remove": "Eliminar miembro",
+    "removeConfirm": "¿Eliminar a {name} de este grupo?",
+    "maxReached": "Máximo 10 miembros por grupo"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "groupInfo": {
+      "title": "Información del grupo",
+      "save": "Guardar cambios",
+      "saved": "Cambios guardados"
+    },
+    "dangerZone": {
+      "title": "Zona de peligro",
+      "deleteGroup": "Eliminar grupo",
+      "deleteDescription": "Elimina permanentemente este grupo y todos sus gastos."
+    }
+  }
+}
