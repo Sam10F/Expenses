@@ -82,7 +82,9 @@
     "fab": "Añadir gasto",
     "paidBy": "Pagado por {name}",
     "yourShare": "Tu parte {amount}",
-    "loadMore": "Cargar más"
+    "loadMore": "Cargar más",
+    "recent": "Gastos recientes",
+    "seeAll": "Ver todos"
   },
   "balance": {
     "title": "Saldos",
@@ -93,7 +95,8 @@
       "title": "Liquidaciones sugeridas",
       "pays": "paga",
       "markSettled": "Marcar como pagado",
-      "noSettlements": "¡Todo al día!"
+      "noSettlements": "¡Todo al día!",
+      "record": "Registrar pago"
     }
   },
   "categories": {

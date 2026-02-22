@@ -1,10 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = process.env.SUPABASE_URL ?? 'https://xkozeysyfamzeihtyilo.supabase.co'
-// Prefer service role key; fall back to anon key (works because RLS allows anon access)
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-  || process.env.SUPABASE_ANON_KEY
-  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrb3pleXN5ZmFtemVpaHR5aWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1OTkxMjIsImV4cCI6MjA4NzE3NTEyMn0.uEfTRQUuZlv_0i6IPAryLYleU0NBRcCM5Gu0jqorg0A'
+const SUPABASE_URL = process.env.SUPABASE_URL
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  throw new Error(
+    'Missing Supabase credentials for tests. Ensure SUPABASE_URL and SUPABASE_ANON_KEY are set in .env',
+  )
+}
 
 export const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },

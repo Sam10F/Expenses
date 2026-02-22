@@ -8,11 +8,66 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    '@vite-pwa/nuxt',
     '@pinia/nuxt',
     '@primevue/nuxt-module',
     '@nuxtjs/i18n',
     '@nuxt/eslint',
   ],
+
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'Expenses',
+      short_name: 'Expenses',
+      description: 'Track and split shared expenses with your group',
+      theme_color: '#6366f1',
+      background_color: '#ffffff',
+      display: 'standalone',
+      orientation: 'portrait',
+      start_url: '/',
+      scope: '/',
+      lang: 'en',
+      icons: [
+        {
+          src: '/icons/pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: '/icons/pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
+        {
+          src: '/icons/pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+      ],
+    },
+    workbox: {
+      navigateFallback: null,
+      globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+      runtimeCaching: [
+        {
+          // Supabase API: network-first, cache as fallback
+          urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+          handler: 'NetworkFirst' as const,
+          options: {
+            cacheName: 'supabase-api',
+            expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
+            networkTimeoutSeconds: 10,
+          },
+        },
+      ],
+    },
+    devOptions: {
+      enabled: true,
+      type: 'module',
+    },
+  },
 
   vite: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
