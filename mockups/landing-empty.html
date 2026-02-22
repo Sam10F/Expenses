@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Groups — Expenses</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN with custom config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          screens:    { sm: '563px', lg: '1024px' },
+          colors: {
+            primary:  { DEFAULT: '#6366f1', hover: '#4f46e5', subtle: '#eef2ff' },
+            surface:  { DEFAULT: '#ffffff', card: '#f9fafb', hover: '#f3f4f6' },
+            border:   { DEFAULT: '#e5e7eb', focus: '#6366f1' },
+            txt:      { DEFAULT: '#111827', secondary: '#6b7280', muted: '#9ca3af' },
+            positive: { DEFAULT: '#22c55e', bg: '#f0fdf4' },
+            negative: { DEFAULT: '#ef4444', bg: '#fef2f2' },
+            warning:  { DEFAULT: '#f59e0b', bg: '#fffbeb' },
+            info:     { DEFAULT: '#3b82f6',  bg: '#eff6ff' },
+          },
+          borderRadius: {
+            sm: '4px', md: '6px', lg: '8px', xl: '12px', full: '9999px',
+          },
+          boxShadow: {
+            card:     '0 1px 2px 0 rgb(0 0 0 / .05)',
+            elevated: '0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1)',
+            overlay:  '0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1)',
+            modal:    '0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* ─── CSS custom properties ─── */
+    :root {
+      --color-primary:        #6366f1;
+      --color-primary-hover:  #4f46e5;
+      --color-primary-subtle: #eef2ff;
+      --color-surface:        #ffffff;
+      --color-surface-card:   #f9fafb;
+      --color-surface-hover:  #f3f4f6;
+      --color-border:         #e5e7eb;
+      --color-border-focus:   #6366f1;
+      --color-text:           #111827;
+      --color-text-secondary: #6b7280;
+      --color-text-muted:     #9ca3af;
+      --color-positive:       #22c55e;
+      --color-positive-bg:    #f0fdf4;
+      --color-negative:       #ef4444;
+      --color-negative-bg:    #fef2f2;
+      --color-warning:        #f59e0b;
+      --color-info:           #3b82f6;
+      --radius-sm:   4px;
+      --radius-md:   6px;
+      --radius-lg:   8px;
+      --radius-xl:   12px;
+      --radius-full: 9999px;
+    }
+
+    /* ─── Base reset ─── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--color-text);
+      background: var(--color-surface);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Focus ring ─── */
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* ════════════════════════════
+       COMPONENT LIBRARY
+       ════════════════════════════ */
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary  { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .btn-primary:hover:not(:disabled)  { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+    .btn-secondary { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-surface-hover); }
+    .btn-ghost { background: transparent; color: var(--color-text-secondary); border-color: transparent; }
+    .btn-ghost:hover:not(:disabled) { background: var(--color-surface-hover); color: var(--color-text); }
+    .btn-danger { background: var(--color-negative); color: #fff; border-color: var(--color-negative); }
+    .btn-danger:hover:not(:disabled) { background: #dc2626; }
+    .btn-sm   { padding: 4px 10px; font-size: 13px; }
+    .btn-lg   { padding: 10px 20px; font-size: 15px; }
+    .btn-icon { padding: 8px; border-radius: var(--radius-md); }
+    .btn-icon.btn-sm { padding: 5px; }
+
+    /* ── Inputs ── */
+    .input, .select, .textarea {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+      outline: none;
+    }
+    .input::placeholder, .textarea::placeholder { color: var(--color-text-muted); }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px rgb(99 102 241 / .15);
+    }
+    .textarea { resize: vertical; min-height: 80px; }
+
+    /* ── Form group ── */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--color-text); }
+    .form-hint  { font-size: 12px; color: var(--color-text-secondary); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);
+      overflow: hidden;
+    }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 15px; }
+    .card-body   { padding: 20px; }
+    .card-footer { padding: 12px 20px; border-top: 1px solid var(--color-border); background: var(--color-surface-card); }
+
+    /* ── Avatars ── */
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .avatar-sm  { width: 28px; height: 28px; font-size: 11px; }
+    .avatar-md  { width: 36px; height: 36px; font-size: 13px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 64px 24px;
+      color: var(--color-text-secondary);
+      text-align: center;
+    }
+    .empty-state-title { font-size: 18px; font-weight: 600; color: var(--color-text); }
+    .empty-state-desc  { font-size: 14px; max-width: 320px; line-height: 1.6; color: var(--color-text-secondary); }
+
+    /* ── Modal ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgb(0 0 0 / .4);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+      width: 100%;
+      max-width: 480px;
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modal-in 200ms ease;
+    }
+    @keyframes modal-in {
+      from { opacity: 0; transform: scale(0.96); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .modal-title  { font-size: 16px; font-weight: 600; }
+    .modal-body   { padding: 20px 24px; overflow-y: auto; flex: 1; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: var(--color-surface-card);
+    }
+
+    /* ── Topbar / App Shell ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / .04);
+    }
+    .topbar-logo {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -.01em;
+      text-decoration: none;
+    }
+    .topbar-spacer { flex: 1; }
+
+    /* ── Responsive app layout ── */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+    .app-body  { flex: 1; display: flex; overflow: hidden; }
+    .app-main  { flex: 1; overflow-y: auto; padding: 16px; }
+    @media (min-width: 563px) { .app-main { padding: 24px; } }
+    @media (min-width: 1024px) { .app-main { padding: 32px; } }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 30;
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgb(99 102 241 / .4);
+      transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+    }
+    .fab:hover { background: var(--color-primary-hover); transform: translateY(-2px); box-shadow: 0 6px 16px rgb(99 102 241 / .45); }
+
+    /* ── Utility ── */
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    /* ── Dropdown ── */
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 160px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
+      padding: 4px;
+      z-index: 50;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: var(--color-text);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 80ms ease;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    .dropdown-item:hover { background: var(--color-surface-hover); }
+    .dropdown-item.danger { color: var(--color-negative); }
+    .dropdown-item.danger:hover { background: var(--color-negative-bg); }
+    .dropdown-divider { border: none; border-top: 1px solid var(--color-border); margin: 4px 0; }
+
+    /* ── Color swatch picker ── */
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 120ms ease;
+      flex-shrink: 0;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .color-swatch:hover:not(.selected) { transform: scale(1.12); }
+    .color-swatch.selected { box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(0,0,0,0.35); }
+
+    /* ── Required asterisk ── */
+    .required { color: var(--color-negative); margin-left: 2px; }
+  </style>
+</head>
+
+<body class="h-full">
+
+  <div class="app-shell">
+
+    <!-- ── Topbar ── -->
+    <header class="topbar" role="banner">
+      <!-- Logo -->
+      <a href="#" class="topbar-logo" aria-label="Expenses — home">Expenses</a>
+
+      <div class="topbar-spacer"></div>
+
+      <!-- User avatar + profile dropdown -->
+      <div class="dropdown">
+        <button
+          class="avatar avatar-sm"
+          aria-label="Your profile"
+          aria-haspopup="true"
+          aria-expanded="false"
+          style="background:#6366f1;color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:600;"
+          onclick="toggleDropdown('user-menu')"
+        >SD</button>
+        <div class="dropdown-menu hidden" id="user-menu" role="menu">
+          <button class="dropdown-item" role="menuitem" onclick="alert('Settings')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            Settings
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── App body ── -->
+    <div class="app-body">
+      <main class="app-main" id="main-content" aria-labelledby="page-heading">
+
+        <!-- Page heading -->
+        <div class="mb-2 text-center">
+          <h1 id="page-heading" class="text-xl font-semibold text-txt" style="color:var(--color-text);">My groups</h1>
+          <p class="text-sm mt-1" style="color:var(--color-text-secondary);">Track and split shared expenses with your people.</p>
+        </div>
+
+        <!-- ── Empty state ── -->
+        <div class="empty-state" style="min-height: 400px;">
+
+          <!-- Illustration -->
+          <div aria-hidden="true" style="color: var(--color-primary); opacity: 0.25; margin-bottom: 4px;">
+            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+              <!-- Centre person -->
+              <circle cx="40" cy="20" r="10" fill="currentColor"/>
+              <path d="M22 52c0-9.941 8.059-18 18-18s18 8.059 18 18" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+              <!-- Left person -->
+              <circle cx="14" cy="28" r="7" fill="currentColor" opacity="0.6"/>
+              <path d="M2 52c0-6.627 5.373-12 12-12" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+              <!-- Right person -->
+              <circle cx="66" cy="28" r="7" fill="currentColor" opacity="0.6"/>
+              <path d="M78 52c0-6.627-5.373-12-12-12" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+              <!-- Euro coin -->
+              <circle cx="40" cy="66" r="6" fill="currentColor" opacity="0.5"/>
+              <text x="40" y="70" text-anchor="middle" font-size="8" font-weight="700" fill="white" font-family="Inter,system-ui,sans-serif">€</text>
+            </svg>
+          </div>
+
+          <h2 class="empty-state-title">No groups yet</h2>
+          <p class="empty-state-desc">
+            Create your first group, add the people involved, and start tracking who paid what — Expenses will handle the maths.
+          </p>
+
+          <!-- Primary CTA -->
+          <button
+            class="btn btn-primary btn-lg"
+            style="margin-top: 8px;"
+            onclick="openModal('modal-new-group')"
+            aria-haspopup="dialog"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Create your first group
+          </button>
+
+          <!-- Secondary hint -->
+          <p style="font-size: 13px; color: var(--color-text-muted); margin-top: 4px;">
+            Or ask someone to invite you to their group.
+          </p>
+        </div>
+
+      </main>
+    </div><!-- end app-body -->
+
+  </div><!-- end app-shell -->
+
+
+  <!-- ── FAB — mobile only ── -->
+  <button
+    class="fab"
+    aria-label="Create new group"
+    onclick="openModal('modal-new-group')"
+    aria-haspopup="dialog"
+  >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+
+  <!-- ══════════════════════════════════════
+       NEW GROUP MODAL
+       ══════════════════════════════════════ -->
+  <div
+    class="modal-backdrop hidden"
+    id="modal-new-group"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-new-group-title"
+  >
+    <div class="modal" role="document">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-new-group-title">New group</h2>
+        <button
+          class="btn btn-ghost btn-icon btn-sm"
+          onclick="closeModal('modal-new-group')"
+          aria-label="Close"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div class="flex flex-col gap-4">
+
+          <!-- Group name -->
+          <div class="form-group">
+            <label class="form-label" for="group-name">
+              Group name
+              <span class="required" aria-hidden="true">*</span>
+            </label>
+            <input
+              class="input"
+              id="group-name"
+              type="text"
+              placeholder="e.g. Weekend Trip, Flat 4B, Barcelona 2026"
+              required
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label" for="group-desc">
+              Description
+              <span style="font-weight:400;color:var(--color-text-muted);font-size:12px;margin-left:4px;">(optional)</span>
+            </label>
+            <input
+              class="input"
+              id="group-desc"
+              type="text"
+              placeholder="A short description of this group…"
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Accent color -->
+          <div class="form-group">
+            <span class="form-label" id="color-picker-label">Accent color</span>
+            <div
+              class="flex gap-2 mt-1 flex-wrap"
+              role="radiogroup"
+              aria-labelledby="color-picker-label"
+            >
+              <!-- Indigo (default selected) -->
+              <button
+                type="button"
+                class="color-swatch selected"
+                style="background:#6366f1;"
+                aria-label="Indigo"
+                aria-pressed="true"
+                data-color="#6366f1"
+                onclick="selectColor(this)"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </button>
+
+              <!-- Amber -->
+              <button
+                type="button"
+                class="color-swatch"
+                style="background:#f59e0b;"
+                aria-label="Amber"
+                aria-pressed="false"
+                data-color="#f59e0b"
+                onclick="selectColor(this)"
+              ></button>
+
+              <!-- Emerald -->
+              <button
+                type="button"
+                class="color-swatch"
+                style="background:#10b981;"
+                aria-label="Emerald"
+                aria-pressed="false"
+                data-color="#10b981"
+                onclick="selectColor(this)"
+              ></button>
+
+              <!-- Rose -->
+              <button
+                type="button"
+                class="color-swatch"
+                style="background:#f43f5e;"
+                aria-label="Rose"
+                aria-pressed="false"
+                data-color="#f43f5e"
+                onclick="selectColor(this)"
+              ></button>
+
+              <!-- Sky -->
+              <button
+                type="button"
+                class="color-swatch"
+                style="background:#0ea5e9;"
+                aria-label="Sky"
+                aria-pressed="false"
+                data-color="#0ea5e9"
+                onclick="selectColor(this)"
+              ></button>
+
+              <!-- Violet -->
+              <button
+                type="button"
+                class="color-swatch"
+                style="background:#8b5cf6;"
+                aria-label="Violet"
+                aria-pressed="false"
+                data-color="#8b5cf6"
+                onclick="selectColor(this)"
+              ></button>
+
+              <!-- Orange -->
+              <button
+                type="button"
+                class="color-swatch"
+                style="background:#f97316;"
+                aria-label="Orange"
+                aria-pressed="false"
+                data-color="#f97316"
+                onclick="selectColor(this)"
+              ></button>
+            </div>
+          </div>
+
+          <!-- Members (at least 1 required) -->
+          <div class="form-group">
+            <span class="form-label" id="members-label">
+              Members
+              <span class="required" aria-hidden="true">*</span>
+            </span>
+
+            <!-- Added members list -->
+            <div
+              id="members-list"
+              style="display:flex;flex-direction:column;gap:6px;"
+              role="list"
+              aria-label="Group members"
+              aria-live="polite"
+            ></div>
+
+            <!-- Add member input row -->
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <input
+                class="input"
+                id="new-member-input"
+                type="text"
+                placeholder="Member name"
+                autocomplete="off"
+                style="flex:1;"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();addMember();}"
+              />
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                onclick="addMember()"
+                style="flex-shrink:0;"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add
+              </button>
+            </div>
+            <span class="form-hint" id="members-hint">At least one member is required. Press Enter or click Add.</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-new-group')">Cancel</button>
+        <button class="btn btn-primary">Create group</button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ════════════════════
+       MINIMAL JS UTILITIES
+       ════════════════════ -->
+  <script>
+    // ── Modal ──
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('hidden');
+      // Focus first focusable element inside modal
+      const focusable = el.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (focusable) focusable.focus();
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+    // Close on backdrop click
+    document.querySelectorAll('.modal-backdrop').forEach(el => {
+      el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+    });
+    // Close on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(el => closeModal(el.id));
+      }
+    });
+
+    // ── Dropdown ──
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      if (!menu) return;
+      const opening = menu.classList.contains('hidden');
+      document.querySelectorAll('.dropdown-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+      if (opening) menu.classList.remove('hidden');
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+      }
+    });
+
+    // ── Members ──
+    let memberCount = 0;
+    const memberColors = [
+      { bg: '#eef2ff', fg: '#6366f1' },
+      { bg: '#fffbeb', fg: '#d97706' },
+      { bg: '#f0fdf4', fg: '#16a34a' },
+      { bg: '#fff1f2', fg: '#f43f5e' },
+      { bg: '#eff6ff', fg: '#2563eb' },
+      { bg: '#f5f3ff', fg: '#7c3aed' },
+      { bg: '#fff7ed', fg: '#ea580c' },
+    ];
+
+    function addMember() {
+      const input = document.getElementById('new-member-input');
+      const name = input.value.trim();
+      if (!name) { input.focus(); return; }
+      memberCount++;
+      const color = memberColors[(memberCount - 1) % memberColors.length];
+      const initials = name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const id = 'member-row-' + memberCount;
+      const list = document.getElementById('members-list');
+      const item = document.createElement('div');
+      item.id = id;
+      item.setAttribute('role', 'listitem');
+      item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--color-surface-card);border:1px solid var(--color-border);border-radius:var(--radius-md);';
+      item.innerHTML =
+        '<div class="avatar avatar-sm" style="background:' + color.bg + ';color:' + color.fg + ';">' + initials + '</div>' +
+        '<span style="flex:1;font-size:14px;">' + name + '</span>' +
+        '<button type="button" class="btn btn-ghost btn-icon btn-sm" onclick="removeMember(\'' + id + '\')" aria-label="Remove ' + name + '">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+            '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>' +
+          '</svg>' +
+        '</button>';
+      list.appendChild(item);
+      input.value = '';
+      input.focus();
+    }
+
+    function removeMember(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    // ── Color swatch ──
+    function selectColor(el) {
+      // Deselect all
+      document.querySelectorAll('.color-swatch').forEach(s => {
+        s.classList.remove('selected');
+        s.setAttribute('aria-pressed', 'false');
+        s.innerHTML = '';
+      });
+      // Select clicked
+      el.classList.add('selected');
+      el.setAttribute('aria-pressed', 'true');
+      el.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>`;
+    }
+  </script>
+
+</body>
+</html>

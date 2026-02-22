@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Expenses</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN with custom config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          screens:    { sm: '563px', lg: '1024px' },
+          colors: {
+            primary:  { DEFAULT: '#6366f1', hover: '#4f46e5', subtle: '#eef2ff' },
+            surface:  { DEFAULT: '#ffffff', card: '#f9fafb', hover: '#f3f4f6' },
+            border:   { DEFAULT: '#e5e7eb', focus: '#6366f1' },
+            txt:      { DEFAULT: '#111827', secondary: '#6b7280', muted: '#9ca3af' },
+            positive: { DEFAULT: '#22c55e', bg: '#f0fdf4' },
+            negative: { DEFAULT: '#ef4444', bg: '#fef2f2' },
+            warning:  { DEFAULT: '#f59e0b', bg: '#fffbeb' },
+            info:     { DEFAULT: '#3b82f6',  bg: '#eff6ff' },
+          },
+          borderRadius: {
+            sm: '4px', md: '6px', lg: '8px', xl: '12px', full: '9999px',
+          },
+          boxShadow: {
+            card:     '0 1px 2px 0 rgb(0 0 0 / .05)',
+            elevated: '0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1)',
+            overlay:  '0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1)',
+            modal:    '0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* ─── CSS custom properties ─── */
+    :root {
+      --color-primary:        #6366f1;
+      --color-primary-hover:  #4f46e5;
+      --color-primary-subtle: #eef2ff;
+      --color-surface:        #ffffff;
+      --color-surface-card:   #f9fafb;
+      --color-surface-hover:  #f3f4f6;
+      --color-border:         #e5e7eb;
+      --color-border-focus:   #6366f1;
+      --color-text:           #111827;
+      --color-text-secondary: #6b7280;
+      --color-text-muted:     #9ca3af;
+      --color-positive:       #22c55e;
+      --color-positive-bg:    #f0fdf4;
+      --color-negative:       #ef4444;
+      --color-negative-bg:    #fef2f2;
+      --color-warning:        #f59e0b;
+      --color-info:           #3b82f6;
+      --radius-sm:  4px;
+      --radius-md:  6px;
+      --radius-lg:  8px;
+      --radius-xl:  12px;
+      --radius-full: 9999px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--color-text);
+      background: var(--color-surface);
+      -webkit-font-smoothing: antialiased;
+    }
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+      white-space: nowrap;
+      user-select: none;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary  { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+    .btn-secondary { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-surface-hover); }
+    .btn-ghost { background: transparent; color: var(--color-text-secondary); border-color: transparent; }
+    .btn-ghost:hover:not(:disabled) { background: var(--color-surface-hover); color: var(--color-text); }
+    .btn-danger { background: var(--color-negative); color: #fff; border-color: var(--color-negative); }
+    .btn-danger:hover:not(:disabled) { background: #dc2626; }
+    .btn-sm   { padding: 4px 10px; font-size: 13px; }
+    .btn-icon { padding: 8px; }
+    .btn-icon.btn-sm { padding: 5px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);
+      overflow: hidden;
+    }
+    .card-body   { padding: 20px; }
+    .card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-surface-card);
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+    }
+    .badge-neutral  { background: var(--color-surface-hover); color: var(--color-text-secondary); border-color: var(--color-border); }
+    .badge-positive { background: var(--color-positive-bg); color: #15803d; }
+    .badge-negative { background: var(--color-negative-bg); color: #b91c1c; }
+
+    /* ── Amount display ── */
+    .amount          { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .amount-positive { color: var(--color-positive); }
+    .amount-negative { color: var(--color-negative); }
+    .amount-neutral  { color: var(--color-text-secondary); }
+
+    /* ── Avatars ── */
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .avatar-sm { width: 28px; height: 28px; font-size: 11px; }
+    .avatar-md { width: 36px; height: 36px; font-size: 13px; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── Form ── */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--color-text); }
+    .input, .select {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+      outline: none;
+    }
+    .input::placeholder { color: var(--color-text-muted); }
+    .input:focus, .select:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px rgb(99 102 241 / .15);
+    }
+    .select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 32px;
+      cursor: pointer;
+    }
+
+    /* ── List items ── */
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .list-item:last-child { border-bottom: none; }
+
+    /* ── Toggle ── */
+    .toggle {
+      width: 36px; height: 20px;
+      background: var(--color-border);
+      border-radius: var(--radius-full);
+      position: relative;
+      cursor: pointer;
+      transition: background 150ms ease;
+      flex-shrink: 0;
+      border: none;
+      outline: none;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px;
+      border-radius: var(--radius-full);
+      background: #fff;
+      box-shadow: 0 1px 2px rgb(0 0 0 / .2);
+      transition: transform 150ms ease;
+    }
+    .toggle.on { background: var(--color-primary); }
+    .toggle.on::after { transform: translateX(16px); }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / .04);
+    }
+    .topbar-logo {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -.01em;
+      text-decoration: none;
+    }
+    .topbar-spacer { flex: 1; }
+
+    /* ── Group tabs bar ── */
+    .group-tabs-bar {
+      position: sticky;
+      top: 56px;
+      z-index: 30;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .group-tabs-bar::-webkit-scrollbar { display: none; }
+    .group-tabs-inner {
+      display: flex;
+      padding: 0 16px;
+      min-width: max-content;
+      align-items: stretch;
+    }
+    @media (min-width: 563px)  { .group-tabs-inner { padding: 0 24px; } }
+    @media (min-width: 1024px) { .group-tabs-inner { padding: 0 32px; } }
+
+    .group-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 120ms ease, border-color 120ms ease;
+      white-space: nowrap;
+    }
+    .group-tab:hover { color: var(--color-text); }
+    .group-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+
+    .color-dot {
+      width: 8px; height: 8px;
+      border-radius: var(--radius-full);
+      display: inline-block;
+      flex-shrink: 0;
+      transition: transform 150ms ease;
+    }
+    .group-tab.active .color-dot { transform: scale(1.5); }
+
+    .tabs-divider {
+      width: 1px;
+      background: var(--color-border);
+      margin: 10px 8px;
+      flex-shrink: 0;
+    }
+
+    /* ── Main content ── */
+    .app-main {
+      flex: 1;
+      padding: 16px;
+    }
+    @media (min-width: 563px)  { .app-main { padding: 24px; } }
+    @media (min-width: 1024px) { .app-main { padding: 32px; } }
+
+    /* ── Balance grid ── */
+    .balance-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 563px) {
+      .balance-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1024px) {
+      .balance-grid { grid-template-columns: repeat(var(--grid-cols, 3), 1fr); }
+    }
+
+    /* ── Balance card ── */
+    .balance-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);
+      overflow: hidden;
+      border-left-width: 3px;
+      transition: box-shadow 120ms ease, transform 120ms ease;
+    }
+    .balance-card:hover {
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / .08), 0 2px 4px -2px rgb(0 0 0 / .08);
+      transform: translateY(-1px);
+    }
+    .balance-card-body { padding: 16px; }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 30;
+      width: 52px; height: 52px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgb(99 102 241 / .4);
+      transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+    }
+    .fab:hover { background: var(--color-primary-hover); transform: translateY(-2px); box-shadow: 0 6px 16px rgb(99 102 241 / .45); }
+
+    /* ── Modal ── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgb(0 0 0 / .4);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+      width: 100%;
+      max-width: 480px;
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .modal-title  { font-size: 16px; font-weight: 600; }
+    .modal-body   { padding: 20px 24px; overflow-y: auto; flex: 1; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: var(--color-surface-card);
+    }
+
+    /* ── Content transition ── */
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .group-content { animation: fadeSlideIn 200ms ease; }
+
+    /* ── Dropdown ── */
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 160px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
+      padding: 4px;
+      z-index: 50;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: var(--color-text);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 80ms ease;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    .dropdown-item:hover { background: var(--color-surface-hover); }
+    .dropdown-item.danger { color: var(--color-negative); }
+    .dropdown-item.danger:hover { background: var(--color-negative-bg); }
+    .dropdown-divider { border: none; border-top: 1px solid var(--color-border); margin: 4px 0; }
+
+    /* ── Tab settings button (gear next to active group tab) ── */
+    .tab-settings-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid var(--color-primary);
+      margin-bottom: -1px;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      transition: color 120ms ease, background 120ms ease;
+    }
+    .tab-settings-btn:hover { color: var(--color-text-secondary); background: var(--color-surface-hover); }
+    .tab-settings-btn.visible { display: flex; }
+
+    /* ── By Category — pie chart ── */
+    .category-section { margin-top: 32px; }
+    .pie-chart-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    @media (min-width: 563px) {
+      .pie-chart-wrap { flex-direction: row; align-items: flex-start; gap: 28px; }
+    }
+    .pie-svg-center { flex-shrink: 0; display: flex; justify-content: center; }
+    .pie-legend { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .legend-item:last-child { border-bottom: none; }
+    .legend-dot  { width: 10px; height: 10px; border-radius: var(--radius-full); flex-shrink: 0; }
+    .legend-icon { display: flex; flex-shrink: 0; }
+    .legend-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--color-text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .legend-amt  { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--color-text); white-space: nowrap; }
+    .legend-pct  { font-size: 12px; color: var(--color-text-secondary); min-width: 40px; text-align: right; white-space: nowrap; }
+
+    /* ── Category chip selector (add expense modal) ── */
+    .cat-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .cat-chip:hover { background: var(--color-surface-hover); }
+
+    /* ── Add category modal — icon picker ── */
+    .icon-picker {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .icon-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px 4px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--color-border);
+      background: none;
+      cursor: pointer;
+      font-size: 10px;
+      line-height: 1.2;
+      color: var(--color-text-muted);
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+      font-family: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .icon-btn:hover { background: var(--color-surface-hover); color: var(--color-text-secondary); }
+    .icon-btn.selected { border-color: var(--color-primary); background: var(--color-primary-subtle); color: var(--color-primary); }
+
+    /* ── Add category modal — color swatches ── */
+    .cat-color-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cat-swatch {
+      width: 28px; height: 28px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      outline-offset: 2px;
+    }
+    .cat-swatch:hover { transform: scale(1.15); }
+    .cat-swatch.selected { box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px currentColor; transform: scale(1.15); }
+
+    /* ── Utility ── */
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sr-only  { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+
+<body class="h-full" style="display:flex; flex-direction:column;">
+
+  <!-- ══════════════════════════════
+       TOPBAR
+       ══════════════════════════════ -->
+  <header class="topbar" role="banner">
+    <!-- Logo -->
+    <a href="#" class="topbar-logo" aria-label="Expenses — home">Expenses</a>
+
+    <div class="topbar-spacer"></div>
+
+    <!-- User avatar + profile dropdown -->
+    <div class="dropdown">
+      <button
+        class="avatar avatar-sm"
+        aria-label="Your profile"
+        aria-haspopup="true"
+        aria-expanded="false"
+        style="background:#6366f1;color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:600;"
+        onclick="toggleDropdown('user-menu')"
+      >SD</button>
+      <div class="dropdown-menu hidden" id="user-menu" role="menu">
+        <button class="dropdown-item" role="menuitem" onclick="alert('Settings')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          Settings
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════
+       GROUP TABS
+       ══════════════════════════════ -->
+  <nav class="group-tabs-bar" aria-label="Switch group">
+    <div class="group-tabs-inner" role="tablist" aria-label="Groups">
+
+      <!-- Weekend Trip tab + settings -->
+      <div style="display:flex;align-items:stretch;position:relative;">
+        <button
+          id="tab-weekend-trip"
+          class="group-tab active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="group-content"
+          onclick="switchGroup('weekend-trip', this)"
+        >
+          <span class="color-dot" style="background:#6366f1;" aria-hidden="true"></span>
+          Weekend Trip
+        </button>
+        <button
+          id="gear-weekend-trip"
+          class="tab-settings-btn visible"
+          aria-label="Weekend Trip settings"
+          aria-haspopup="true"
+          onclick="toggleTabSettings('weekend-trip', event)"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu hidden" id="dd-weekend-trip" style="top:100%;left:0;" role="menu">
+          <button class="dropdown-item" role="menuitem" onclick="alert('Archive Weekend Trip')">Archive</button>
+          <button class="dropdown-item danger" role="menuitem" onclick="alert('Remove Weekend Trip')">Remove</button>
+        </div>
+      </div>
+
+      <!-- Flatmates tab + settings -->
+      <div style="display:flex;align-items:stretch;position:relative;">
+        <button
+          id="tab-flatmates"
+          class="group-tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="group-content"
+          onclick="switchGroup('flatmates', this)"
+        >
+          <span class="color-dot" style="background:#10b981;" aria-hidden="true"></span>
+          Flatmates
+        </button>
+        <button
+          id="gear-flatmates"
+          class="tab-settings-btn"
+          aria-label="Flatmates settings"
+          aria-haspopup="true"
+          onclick="toggleTabSettings('flatmates', event)"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu hidden" id="dd-flatmates" style="top:100%;left:0;" role="menu">
+          <button class="dropdown-item" role="menuitem" onclick="alert('Archive Flatmates')">Archive</button>
+          <button class="dropdown-item danger" role="menuitem" onclick="alert('Remove Flatmates')">Remove</button>
+        </div>
+      </div>
+
+      <!-- Road Trip tab + settings -->
+      <div style="display:flex;align-items:stretch;position:relative;">
+        <button
+          id="tab-road-trip"
+          class="group-tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="group-content"
+          onclick="switchGroup('road-trip', this)"
+        >
+          <span class="color-dot" style="background:#f59e0b;" aria-hidden="true"></span>
+          Road Trip 2025
+        </button>
+        <button
+          id="gear-road-trip"
+          class="tab-settings-btn"
+          aria-label="Road Trip 2025 settings"
+          aria-haspopup="true"
+          onclick="toggleTabSettings('road-trip', event)"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu hidden" id="dd-road-trip" style="top:100%;left:0;" role="menu">
+          <button class="dropdown-item" role="menuitem" onclick="alert('Archive Road Trip 2025')">Archive</button>
+          <button class="dropdown-item danger" role="menuitem" onclick="alert('Remove Road Trip 2025')">Remove</button>
+        </div>
+      </div>
+
+      <!-- Work Team tab + settings -->
+      <div style="display:flex;align-items:stretch;position:relative;">
+        <button
+          id="tab-work-team"
+          class="group-tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="group-content"
+          onclick="switchGroup('work-team', this)"
+        >
+          <span class="color-dot" style="background:#f43f5e;" aria-hidden="true"></span>
+          Work Team
+        </button>
+        <button
+          id="gear-work-team"
+          class="tab-settings-btn"
+          aria-label="Work Team settings"
+          aria-haspopup="true"
+          onclick="toggleTabSettings('work-team', event)"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu hidden" id="dd-work-team" style="top:100%;left:0;" role="menu">
+          <button class="dropdown-item" role="menuitem" onclick="alert('Archive Work Team')">Archive</button>
+          <button class="dropdown-item danger" role="menuitem" onclick="alert('Remove Work Team')">Remove</button>
+        </div>
+      </div>
+
+      <!-- Visual separator -->
+      <div class="tabs-divider" aria-hidden="true"></div>
+
+      <!-- New group action (not a tab) -->
+      <button
+        class="group-tab"
+        style="color:var(--color-text-muted);"
+        onclick="alert('Create a new group')"
+        aria-label="Create new group"
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        New group
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════
+       MAIN CONTENT
+       ══════════════════════════════ -->
+  <main class="app-main" id="main-content" tabindex="-1" style="flex:1; overflow-y:auto;">
+    <div id="group-content" class="group-content" role="tabpanel" aria-labelledby="tab-weekend-trip">
+      <!-- Populated by JS -->
+    </div>
+  </main>
+
+  <!-- FAB — always visible; sole trigger for the primary action -->
+  <button class="fab" aria-label="Add expense" aria-haspopup="dialog" onclick="openModal('add-expense-modal')">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+  <!-- ══════════════════════════════
+       ADD CATEGORY MODAL
+       ══════════════════════════════ -->
+  <div class="modal-backdrop hidden" id="add-category-modal" role="dialog" aria-modal="true" aria-labelledby="modal-cat-title" tabindex="-1">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-cat-title">Add category</h2>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="closeModal('add-category-modal')" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <!-- Name -->
+          <div class="form-group">
+            <label class="form-label" for="cat-name-input">Name</label>
+            <input class="input" id="cat-name-input" type="text" placeholder="e.g. Groceries" maxlength="32" autocomplete="off" />
+          </div>
+          <!-- Color -->
+          <div class="form-group">
+            <span class="form-label" id="cat-color-label">Colour</span>
+            <div class="cat-color-row" role="group" aria-labelledby="cat-color-label" id="cat-color-picker">
+              <!-- rendered by initCategoryModal() -->
+            </div>
+          </div>
+          <!-- Icon -->
+          <div class="form-group">
+            <span class="form-label" id="cat-icon-label">Icon</span>
+            <div class="icon-picker" role="group" aria-labelledby="cat-icon-label" id="cat-icon-picker">
+              <!-- rendered by initCategoryModal() -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-category-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="addCategory()">Add category</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       ADD EXPENSE MODAL
+       ══════════════════════════════ -->
+  <div class="modal-backdrop hidden" id="add-expense-modal" role="dialog" aria-modal="true" aria-labelledby="modal-expense-title" tabindex="-1">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-expense-title">Add expense</h2>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="closeModal('add-expense-modal')" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="flex flex-col gap-4" id="modal-form-fields">
+          <!-- Populated by JS based on active group -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-expense-modal')">Cancel</button>
+        <button class="btn btn-primary">Save expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       JAVASCRIPT
+       ══════════════════════════════ -->
+  <script>
+    /* ═══════════════════════════════
+       CATEGORIES — icons & colours
+       ═══════════════════════════════ */
+
+    const ICON_DEFS = [
+      { id: 'general',       label: 'General',       svg: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>' },
+      { id: 'food',          label: 'Food',           svg: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>' },
+      { id: 'home',          label: 'Home',           svg: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
+      { id: 'transport',     label: 'Transport',      svg: '<rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>' },
+      { id: 'travel',        label: 'Travel',         svg: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21 4 19 4s-2 1-3.5 2.5L7 3.2 5.8 4.4l6 6L8 15H6l-1 3 4-1 6 6 1.3-1.2z"/>' },
+      { id: 'entertainment', label: 'Fun',            svg: '<rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>' },
+      { id: 'shopping',      label: 'Shopping',       svg: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>' },
+      { id: 'health',        label: 'Health',         svg: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' },
+      { id: 'education',     label: 'Education',      svg: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>' },
+      { id: 'utilities',     label: 'Utilities',      svg: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
+      { id: 'drinks',        label: 'Drinks',         svg: '<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/>' },
+      { id: 'work',          label: 'Work',           svg: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/>' },
+      { id: 'sports',        label: 'Sports',         svg: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+      { id: 'gifts',         label: 'Gifts',          svg: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>' },
+      { id: 'tech',          label: 'Tech',           svg: '<rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>' },
+    ];
+
+    const CAT_COLORS = [
+      { hex: '#6366f1', label: 'Indigo'   },
+      { hex: '#f59e0b', label: 'Amber'    },
+      { hex: '#10b981', label: 'Emerald'  },
+      { hex: '#f43f5e', label: 'Rose'     },
+      { hex: '#0ea5e9', label: 'Sky'      },
+      { hex: '#8b5cf6', label: 'Violet'   },
+      { hex: '#ea580c', label: 'Orange'   },
+      { hex: '#14b8a6', label: 'Teal'     },
+      { hex: '#ec4899', label: 'Pink'     },
+      { hex: '#64748b', label: 'Slate'    },
+    ];
+
+    /* ── Icon SVG helper ── */
+    function iconSvg(iconId, size = 13, color = 'currentColor') {
+      const def = ICON_DEFS.find(i => i.id === iconId) || ICON_DEFS[0];
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${def.svg}</svg>`;
+    }
+
+    /* ═══════════════════════════════
+       PIE CHART (donut)
+       ═══════════════════════════════ */
+
+    function polarToCart(cx, cy, r, deg) {
+      const rad = (deg - 90) * Math.PI / 180;
+      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function donutSlicePath(cx, cy, ro, ri, startDeg, endDeg) {
+      const sweep = endDeg - startDeg;
+      if (sweep >= 359.9) {
+        // Full ring — use two semi-circles to avoid degenerate arc
+        return [
+          `M ${cx} ${cy - ro} A ${ro} ${ro} 0 1 1 ${cx - 0.001} ${cy - ro} Z`,
+          `M ${cx} ${cy - ri} A ${ri} ${ri} 0 1 0 ${cx - 0.001} ${cy - ri} Z`,
+        ].join(' ');
+      }
+      const os = polarToCart(cx, cy, ro, startDeg);
+      const oe = polarToCart(cx, cy, ro, endDeg);
+      const is = polarToCart(cx, cy, ri, startDeg);
+      const ie = polarToCart(cx, cy, ri, endDeg);
+      const large = sweep > 180 ? 1 : 0;
+      return [
+        `M ${os.x.toFixed(3)} ${os.y.toFixed(3)}`,
+        `A ${ro} ${ro} 0 ${large} 1 ${oe.x.toFixed(3)} ${oe.y.toFixed(3)}`,
+        `L ${ie.x.toFixed(3)} ${ie.y.toFixed(3)}`,
+        `A ${ri} ${ri} 0 ${large} 0 ${is.x.toFixed(3)} ${is.y.toFixed(3)}`,
+        'Z',
+      ].join(' ');
+    }
+
+    function buildPieChart(g) {
+      const CX = 80, CY = 80, RO = 70, RI = 38;
+      const totals    = g.categoryTotals || {};
+      const grandTotal = Object.values(totals).reduce((s, v) => s + v, 0);
+      if (grandTotal === 0) return '<p style="color:var(--color-text-muted);font-size:13px;">No expenses yet.</p>';
+
+      const activeCats = g.categories.filter(c => (totals[c.id] || 0) > 0);
+      const GAP = activeCats.length > 1 ? 1.2 : 0;
+
+      let slicesSvg = '';
+      let startDeg  = 0;
+      activeCats.forEach(cat => {
+        const sweep  = (totals[cat.id] / grandTotal) * 360;
+        const s = startDeg + GAP / 2;
+        const e = startDeg + sweep - GAP / 2;
+        slicesSvg += `<path d="${donutSlicePath(CX, CY, RO, RI, s, e)}" fill="${cat.color}"/>`;
+        startDeg += sweep;
+      });
+
+      const sorted = [...activeCats].sort((a, b) => (totals[b.id] || 0) - (totals[a.id] || 0));
+      const legendHtml = sorted.map(cat => {
+        const amt = totals[cat.id] || 0;
+        const pct = ((amt / grandTotal) * 100).toFixed(1);
+        return `
+          <div class="legend-item" role="listitem">
+            <span class="legend-dot" style="background:${cat.color};" aria-hidden="true"></span>
+            <span class="legend-icon" style="color:${cat.color};">${iconSvg(cat.icon, 13, cat.color)}</span>
+            <span class="legend-name">${cat.name}</span>
+            <span class="legend-amt">€${amt.toFixed(2)}</span>
+            <span class="legend-pct">${pct}%</span>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="pie-chart-wrap">
+          <div class="pie-svg-center">
+            <svg viewBox="0 0 160 160" width="160" height="160" aria-hidden="true" focusable="false" role="img">
+              <g fill-rule="evenodd">${slicesSvg}</g>
+              <text x="${CX}" y="${CY - 7}" text-anchor="middle" font-size="10" fill="var(--color-text-secondary)" font-family="Inter,sans-serif" font-weight="500">Total</text>
+              <text x="${CX}" y="${CY + 9}" text-anchor="middle" font-size="13" fill="var(--color-text)" font-family="Inter,sans-serif" font-weight="700">€${grandTotal.toFixed(2)}</text>
+            </svg>
+          </div>
+          <div class="pie-legend" role="list" aria-label="Expense categories">${legendHtml}</div>
+        </div>`;
+    }
+
+    /* ═══════════════════════════════
+       CATEGORY STATE & ACTIONS
+       ═══════════════════════════════ */
+
+    let selectedCatIcon  = 'general';
+    let selectedCatColor = '#6366f1';
+    let selectedExpCatId = 'general';
+
+    /* Build chip row for the add-expense modal */
+    function buildCategoryChips(g) {
+      return g.categories.map(cat => {
+        const isSel  = cat.id === selectedExpCatId;
+        const selStyle = isSel
+          ? `border-color:${cat.color};background:${cat.color}18;color:${cat.color};`
+          : '';
+        return `
+          <button
+            class="cat-chip${isSel ? ' selected' : ''}"
+            data-cat-id="${cat.id}"
+            aria-pressed="${isSel}"
+            onclick="selectExpCat('${cat.id}')"
+            style="${selStyle}"
+          >${iconSvg(cat.icon, 13)} ${cat.name}</button>`;
+      }).join('');
+    }
+
+    /* Select a category chip in the add-expense modal */
+    function selectExpCat(catId) {
+      selectedExpCatId = catId;
+      const g = groups[currentGroupId];
+      document.querySelectorAll('.cat-chip').forEach(chip => {
+        const cid = chip.dataset.catId;
+        const cat = g.categories.find(c => c.id === cid);
+        const isSel = cid === catId;
+        chip.classList.toggle('selected', isSel);
+        chip.setAttribute('aria-pressed', isSel);
+        chip.style.borderColor = isSel && cat ? cat.color : '';
+        chip.style.background  = isSel && cat ? cat.color + '18' : '';
+        chip.style.color       = isSel && cat ? cat.color : '';
+      });
+    }
+
+    /* Select icon in add-category modal */
+    function selectCatIcon(iconId) {
+      selectedCatIcon = iconId;
+      document.querySelectorAll('.icon-btn').forEach(b => {
+        const sel = b.dataset.iconId === iconId;
+        b.classList.toggle('selected', sel);
+        b.setAttribute('aria-pressed', sel);
+      });
+    }
+
+    /* Select colour swatch in add-category modal */
+    function selectCatColor(hex) {
+      selectedCatColor = hex;
+      document.querySelectorAll('.cat-swatch').forEach(s => {
+        const sel = s.dataset.hex === hex;
+        s.classList.toggle('selected', sel);
+        s.setAttribute('aria-pressed', sel);
+        s.style.color = sel ? hex : '';   // used for box-shadow currentColor trick
+      });
+    }
+
+    /* Add a new category to the current group */
+    function addCategory() {
+      const name = document.getElementById('cat-name-input').value.trim();
+      if (!name) {
+        document.getElementById('cat-name-input').focus();
+        return;
+      }
+      const g  = groups[currentGroupId];
+      const id = 'cat-' + Date.now();
+      g.categories.push({ id, name, color: selectedCatColor, icon: selectedCatIcon });
+      g.categoryTotals[id] = 0;
+      closeModal('add-category-modal');
+      document.getElementById('cat-name-input').value = '';
+      renderGroup(currentGroupId);
+    }
+
+    /* Populate the static Add-Category modal pickers (run once at page load) */
+    function initCategoryModal() {
+      // Color swatches
+      const colorPicker = document.getElementById('cat-color-picker');
+      colorPicker.innerHTML = CAT_COLORS.map(c => `
+        <button
+          class="cat-swatch${c.hex === selectedCatColor ? ' selected' : ''}"
+          data-hex="${c.hex}"
+          aria-label="${c.label}"
+          aria-pressed="${c.hex === selectedCatColor}"
+          style="background:${c.hex};${c.hex === selectedCatColor ? `color:${c.hex};` : ''}"
+          onclick="selectCatColor('${c.hex}')"
+        ></button>`).join('');
+
+      // Icon buttons
+      const iconPicker = document.getElementById('cat-icon-picker');
+      iconPicker.innerHTML = ICON_DEFS.map(def => `
+        <button
+          class="icon-btn${def.id === selectedCatIcon ? ' selected' : ''}"
+          data-icon-id="${def.id}"
+          aria-label="${def.label}"
+          aria-pressed="${def.id === selectedCatIcon}"
+          onclick="selectCatIcon('${def.id}')"
+        >
+          ${iconSvg(def.id, 18)}
+          ${def.label}
+        </button>`).join('');
+    }
+
+    /* ─── Group data ─── */
+    const groups = {
+      'weekend-trip': {
+        id: 'weekend-trip',
+        name: 'Weekend Trip',
+        description: 'Valencia getaway · 15–18 Feb 2026',
+        color: '#6366f1',
+        totalSpent: 362.80,
+        expenseCount: 8,
+        members: [
+          { initials: 'AG', name: 'Ana García',    bg: '#eef2ff', fg: '#6366f1', balance:  42.00 },
+          { initials: 'MR', name: 'Marco Rossi',   bg: '#fffbeb', fg: '#d97706', balance: -18.50 },
+          { initials: 'LS', name: 'Lena Schmidt',  bg: '#f0fdf4', fg: '#16a34a', balance:   0.00 },
+          { initials: 'DM', name: 'Diego Morales', bg: '#fdf4ff', fg: '#a855f7', balance: -23.50 },
+        ],
+        categories: [
+          { id: 'general',       name: 'General',       color: '#9ca3af', icon: 'general',       locked: true },
+          { id: 'food',          name: 'Food',           color: '#f59e0b', icon: 'food' },
+          { id: 'transport',     name: 'Transport',      color: '#3b82f6', icon: 'transport' },
+          { id: 'entertainment', name: 'Entertainment',  color: '#f43f5e', icon: 'entertainment' },
+        ],
+        categoryTotals: { general: 60.00, food: 128.00, transport: 95.00, entertainment: 79.80 },
+      },
+      'flatmates': {
+        id: 'flatmates',
+        name: 'Flatmates',
+        description: 'Shared flat on Calle Mayor · Ongoing',
+        color: '#10b981',
+        totalSpent: 1248.60,
+        expenseCount: 23,
+        members: [
+          { initials: 'CV', name: 'Carlos Vega',  bg: '#ecfdf5', fg: '#059669', balance:  156.30 },
+          { initials: 'SP', name: 'Sofia Patel',  bg: '#eef2ff', fg: '#6366f1', balance:  -78.15 },
+          { initials: 'YT', name: 'Yuki Tanaka',  bg: '#fffbeb', fg: '#d97706', balance:  -78.15 },
+        ],
+        categories: [
+          { id: 'general',   name: 'General',   color: '#9ca3af', icon: 'general',  locked: true },
+          { id: 'housing',   name: 'Housing',   color: '#6366f1', icon: 'home' },
+          { id: 'utilities', name: 'Utilities', color: '#f59e0b', icon: 'utilities' },
+          { id: 'shopping',  name: 'Shopping',  color: '#10b981', icon: 'shopping' },
+          { id: 'food',      name: 'Food',      color: '#ea580c', icon: 'food' },
+        ],
+        categoryTotals: { general: 100.00, housing: 680.00, utilities: 248.60, shopping: 120.00, food: 100.00 },
+      },
+      'road-trip': {
+        id: 'road-trip',
+        name: 'Road Trip 2025',
+        description: 'Andalucía · Aug 2025',
+        color: '#f59e0b',
+        totalSpent: 2134.50,
+        expenseCount: 41,
+        members: [
+          { initials: 'RT', name: 'Ramón Torres',  bg: '#fefce8', fg: '#ca8a04', balance:   89.20 },
+          { initials: 'BA', name: 'Beatriz Alves', bg: '#f0fdf4', fg: '#16a34a', balance:   34.10 },
+          { initials: 'FM', name: 'Felix Müller',  bg: '#eef2ff', fg: '#6366f1', balance:  -45.00 },
+          { initials: 'IL', name: 'Ingrid Larsen', bg: '#fef2f2', fg: '#ef4444', balance:  -52.80 },
+          { initials: 'PS', name: 'Paulo Santos',  bg: '#fff7ed', fg: '#ea580c', balance:  -25.50 },
+        ],
+        categories: [
+          { id: 'general',       name: 'General',       color: '#9ca3af', icon: 'general',       locked: true },
+          { id: 'travel',        name: 'Travel',         color: '#0ea5e9', icon: 'travel' },
+          { id: 'food',          name: 'Food',           color: '#f59e0b', icon: 'food' },
+          { id: 'transport',     name: 'Transport',      color: '#3b82f6', icon: 'transport' },
+          { id: 'entertainment', name: 'Entertainment',  color: '#8b5cf6', icon: 'entertainment' },
+        ],
+        categoryTotals: { general: 134.50, travel: 950.00, food: 480.00, transport: 370.00, entertainment: 200.00 },
+      },
+      'work-team': {
+        id: 'work-team',
+        name: 'Work Team',
+        description: 'Team lunches & offsite events',
+        color: '#f43f5e',
+        totalSpent: 480.00,
+        expenseCount: 12,
+        members: [
+          { initials: 'EK', name: 'Elena Kovač',  bg: '#fff1f2', fg: '#f43f5e', balance:  120.00 },
+          { initials: 'JC', name: 'James Chen',   bg: '#eef2ff', fg: '#6366f1', balance:  -60.00 },
+          { initials: 'NO', name: 'Nadia Okafor', bg: '#ecfdf5', fg: '#059669', balance:  -60.00 },
+        ],
+        categories: [
+          { id: 'general',       name: 'General',       color: '#9ca3af', icon: 'general',       locked: true },
+          { id: 'food',          name: 'Food',           color: '#f59e0b', icon: 'food' },
+          { id: 'entertainment', name: 'Entertainment',  color: '#8b5cf6', icon: 'entertainment' },
+        ],
+        categoryTotals: { general: 80.00, food: 280.00, entertainment: 120.00 },
+      }
+    };
+
+    let currentGroupId = 'weekend-trip';
+
+    /* ─── Format helpers ─── */
+    function fmt(balance) {
+      const abs = Math.abs(balance).toFixed(2);
+      if (balance > 0)  return `+€${abs}`;
+      if (balance < 0)  return `\u2212€${abs}`; // U+2212 minus sign
+      return `€${abs}`;
+    }
+    function statusOf(balance) {
+      if (balance > 0) return 'positive';
+      if (balance < 0) return 'negative';
+      return 'neutral';
+    }
+    function labelOf(balance) {
+      if (balance > 0) return 'is owed';
+      if (balance < 0) return 'owes';
+      return 'settled up';
+    }
+    function borderOf(balance) {
+      if (balance > 0) return 'var(--color-positive)';
+      if (balance < 0) return 'var(--color-negative)';
+      return 'var(--color-border)';
+    }
+    function amountClass(balance) {
+      if (balance > 0) return 'amount amount-positive';
+      if (balance < 0) return 'amount amount-negative';
+      return 'amount amount-neutral';
+    }
+
+    /* ─── Render balance card ─── */
+    function renderCard(m) {
+      return `
+        <div class="balance-card" style="border-left-color:${borderOf(m.balance)};">
+          <div class="balance-card-body">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <div class="avatar avatar-md" style="background:${m.bg};color:${m.fg};">${m.initials}</div>
+              <div class="truncate" style="flex:1;min-width:0;font-weight:600;font-size:14px;">${m.name}</div>
+            </div>
+            <div class="${amountClass(m.balance)}" style="font-size:24px;line-height:1.1;">${fmt(m.balance)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ─── Render full group view ─── */
+    function renderGroup(groupId) {
+      const g = groups[groupId];
+      const cards   = [...g.members].sort((a, b) => a.balance - b.balance).map(renderCard).join('');
+      const cols    = Math.min(g.members.length, 4);
+      const tabId   = `tab-${groupId}`;
+
+      document.getElementById('group-content').innerHTML = `
+        <!-- Group header -->
+        <div class="text-center lg:text-left" style="margin-bottom:24px;">
+          <div class="flex items-center justify-center lg:justify-start" style="gap:8px;margin-bottom:4px;">
+            <span style="width:12px;height:12px;border-radius:9999px;background:${g.color};display:inline-block;flex-shrink:0;" aria-hidden="true"></span>
+            <h1 style="font-size:20px;font-weight:700;margin:0;color:var(--color-text);">${g.name}</h1>
+          </div>
+          <p style="margin:0 0 8px;color:var(--color-text-secondary);font-size:13px;">${g.description}</p>
+          <div class="flex items-center justify-center lg:justify-start flex-wrap" style="gap:8px;">
+            <span class="badge badge-neutral">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              ${g.members.length} members
+            </span>
+            <span class="badge badge-neutral">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              ${g.expenseCount} expenses
+            </span>
+            <span class="badge badge-neutral" style="font-variant-numeric:tabular-nums;">
+              €${g.totalSpent.toFixed(2)} total
+            </span>
+          </div>
+        </div>
+
+        <!-- Balances -->
+        <section aria-labelledby="balance-heading-${groupId}">
+          <h2 id="balance-heading-${groupId}" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-secondary);margin:0 0 12px;">
+            Balances
+          </h2>
+          <div class="balance-grid" style="--grid-cols:${cols};">
+            ${cards}
+          </div>
+        </section>
+
+        <!-- By Category -->
+        <section class="category-section" aria-labelledby="cat-heading-${groupId}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <h2 id="cat-heading-${groupId}" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-secondary);margin:0;">
+              By Category
+            </h2>
+            <button
+              class="btn btn-ghost btn-sm"
+              style="font-size:12px;gap:5px;"
+              onclick="openModal('add-category-modal')"
+              aria-haspopup="dialog"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add category
+            </button>
+          </div>
+          ${buildPieChart(g)}
+        </section>
+      `;
+
+      // Update ARIA
+      document.getElementById('group-content').setAttribute('aria-labelledby', tabId);
+
+      // Rebuild modal form for this group
+      buildModalForm(g);
+    }
+
+    /* ─── Build add-expense modal form ─── */
+    function buildModalForm(g) {
+      const memberOptions = g.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+      const memberToggles = g.members.map(m => `
+        <div class="list-item" style="cursor:default;">
+          <div class="avatar avatar-sm" style="background:${m.bg};color:${m.fg};">${m.initials}</div>
+          <span style="flex:1;">${m.name}</span>
+          <button
+            class="toggle on"
+            aria-label="Include ${m.name.split(' ')[0]}"
+            aria-pressed="true"
+            onclick="this.classList.toggle('on'); this.setAttribute('aria-pressed', this.classList.contains('on'));"
+          ></button>
+        </div>
+      `).join('');
+
+      selectedExpCatId = 'general'; // reset to default on each open
+      const categoryChips = buildCategoryChips(g);
+
+      document.getElementById('modal-form-fields').innerHTML = `
+        <div class="form-group">
+          <label class="form-label" for="expense-title">Title</label>
+          <input class="input" id="expense-title" type="text" placeholder="e.g. Dinner at La Paloma" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="expense-amount">Amount</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--color-text-secondary);pointer-events:none;font-size:14px;" aria-hidden="true">€</span>
+              <input class="input" id="expense-amount" type="number" min="0" step="0.01" placeholder="0.00" style="padding-left:26px;" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="expense-date">Date</label>
+            <input class="input" id="expense-date" type="date" value="2026-02-20" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="expense-paid-by">Paid by</label>
+          <select class="select" id="expense-paid-by">${memberOptions}</select>
+        </div>
+        <div class="form-group">
+          <span class="form-label" id="cat-chip-label">Category</span>
+          <div class="cat-chips" role="group" aria-labelledby="cat-chip-label" style="margin-top:2px;">
+            ${categoryChips}
+          </div>
+        </div>
+        <div class="form-group">
+          <span class="form-label" id="split-label">Split between</span>
+          <div class="card" style="margin-top:4px;overflow:hidden;" role="group" aria-labelledby="split-label">
+            ${memberToggles}
+          </div>
+        </div>
+      `;
+    }
+
+    /* ─── Switch group ─── */
+    function switchGroup(groupId, tabEl) {
+      // Update tab states
+      document.querySelectorAll('[role="tab"]').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tabEl.classList.add('active');
+      tabEl.setAttribute('aria-selected', 'true');
+
+      // Show gear only for the active tab; hide all others & close dropdowns
+      document.querySelectorAll('.tab-settings-btn').forEach(b => b.classList.remove('visible'));
+      document.querySelectorAll('.dropdown-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+      const gear = document.getElementById('gear-' + groupId);
+      if (gear) gear.classList.add('visible');
+
+      // Re-animate content
+      const content = document.getElementById('group-content');
+      content.style.animation = 'none';
+      void content.offsetHeight; // force reflow
+      content.style.animation = '';
+
+      currentGroupId = groupId;
+      renderGroup(groupId);
+    }
+
+    /* ─── Dropdowns ─── */
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      if (!menu) return;
+      const opening = menu.classList.contains('hidden');
+      // Close every open dropdown first
+      document.querySelectorAll('.dropdown-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+      if (opening) menu.classList.remove('hidden');
+    }
+
+    function toggleTabSettings(groupId, event) {
+      event.stopPropagation(); // prevent the click-outside handler from immediately closing
+      const dd = document.getElementById('dd-' + groupId);
+      if (!dd) return;
+      const opening = dd.classList.contains('hidden');
+      document.querySelectorAll('.dropdown-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+      if (opening) dd.classList.remove('hidden');
+    }
+
+    /* ─── Modal ─── */
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) { el.classList.remove('hidden'); el.focus(); }
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+    document.addEventListener('click', e => {
+      if (e.target.classList.contains('modal-backdrop')) closeModal(e.target.id);
+      // Close any open dropdown when clicking outside a dropdown or tab-settings-btn
+      if (!e.target.closest('.dropdown') && !e.target.closest('.tab-settings-btn')) {
+        document.querySelectorAll('.dropdown-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+      }
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(el => closeModal(el.id));
+        document.querySelectorAll('.dropdown-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
+      }
+    });
+
+    /* ─── Init ─── */
+    initCategoryModal();
+    renderGroup(currentGroupId);
+  </script>
+
+</body>
+</html>

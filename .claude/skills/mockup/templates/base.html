@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{PAGE_TITLE}} — Expenses</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN with custom config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          screens:    { sm: '563px', lg: '1024px' },
+          colors: {
+            primary:  { DEFAULT: '#6366f1', hover: '#4f46e5', subtle: '#eef2ff' },
+            surface:  { DEFAULT: '#ffffff', card: '#f9fafb', hover: '#f3f4f6' },
+            border:   { DEFAULT: '#e5e7eb', focus: '#6366f1' },
+            txt:      { DEFAULT: '#111827', secondary: '#6b7280', muted: '#9ca3af' },
+            positive: { DEFAULT: '#22c55e', bg: '#f0fdf4' },
+            negative: { DEFAULT: '#ef4444', bg: '#fef2f2' },
+            warning:  { DEFAULT: '#f59e0b', bg: '#fffbeb' },
+            info:     { DEFAULT: '#3b82f6',  bg: '#eff6ff' },
+          },
+          borderRadius: {
+            sm: '4px', md: '6px', lg: '8px', xl: '12px', full: '9999px',
+          },
+          boxShadow: {
+            card:     '0 1px 2px 0 rgb(0 0 0 / .05)',
+            elevated: '0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1)',
+            overlay:  '0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1)',
+            modal:    '0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* ─── CSS custom properties (mirror Tailwind tokens) ─── */
+    :root {
+      --color-primary:        #6366f1;
+      --color-primary-hover:  #4f46e5;
+      --color-primary-subtle: #eef2ff;
+      --color-surface:        #ffffff;
+      --color-surface-card:   #f9fafb;
+      --color-surface-hover:  #f3f4f6;
+      --color-border:         #e5e7eb;
+      --color-border-focus:   #6366f1;
+      --color-text:           #111827;
+      --color-text-secondary: #6b7280;
+      --color-text-muted:     #9ca3af;
+      --color-positive:       #22c55e;
+      --color-positive-bg:    #f0fdf4;
+      --color-negative:       #ef4444;
+      --color-negative-bg:    #fef2f2;
+      --color-warning:        #f59e0b;
+      --color-info:           #3b82f6;
+      --radius-sm:  4px;
+      --radius-md:  6px;
+      --radius-lg:  8px;
+      --radius-xl:  12px;
+      --radius-full: 9999px;
+    }
+
+    /* ─── Base reset ─── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--color-text);
+      background: var(--color-surface);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Focus ring (accessibility) ─── */
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* ════════════════════════════════════════════
+       COMPONENT LIBRARY — PrimeVue Aura simulation
+       ════════════════════════════════════════════ */
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border-color: var(--color-border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-surface-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-text-secondary);
+      border-color: transparent;
+    }
+    .btn-ghost:hover:not(:disabled) {
+      background: var(--color-surface-hover);
+      color: var(--color-text);
+    }
+
+    .btn-danger {
+      background: var(--color-negative);
+      color: #fff;
+      border-color: var(--color-negative);
+    }
+    .btn-danger:hover:not(:disabled) { background: #dc2626; }
+
+    .btn-sm { padding: 4px 10px; font-size: 13px; }
+    .btn-lg { padding: 10px 20px; font-size: 15px; }
+    .btn-icon { padding: 8px; border-radius: var(--radius-md); }
+    .btn-icon.btn-sm { padding: 5px; }
+
+    /* ── Inputs & Selects ── */
+    .input, .select, .textarea {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+      outline: none;
+    }
+    .input::placeholder, .textarea::placeholder { color: var(--color-text-muted); }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px rgb(99 102 241 / .15);
+    }
+    .input:disabled, .select:disabled, .textarea:disabled {
+      background: var(--color-surface-hover);
+      opacity: .6;
+      cursor: not-allowed;
+    }
+    .textarea { resize: vertical; min-height: 80px; }
+    .select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; cursor: pointer; }
+
+    /* ── Form group ── */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--color-text); }
+    .form-hint  { font-size: 12px; color: var(--color-text-secondary); }
+    .form-error { font-size: 12px; color: var(--color-negative); }
+    .input-error { border-color: var(--color-negative); }
+    .input-error:focus { box-shadow: 0 0 0 3px rgb(239 68 68 / .15); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card, 0 1px 2px 0 rgb(0 0 0 / .05));
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .card-body   { padding: 20px; }
+    .card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-surface-card);
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+    }
+    .badge-neutral  { background: var(--color-surface-hover); color: var(--color-text-secondary); border-color: var(--color-border); }
+    .badge-primary  { background: var(--color-primary-subtle); color: var(--color-primary); }
+    .badge-positive { background: var(--color-positive-bg);    color: #15803d; }
+    .badge-negative { background: var(--color-negative-bg);    color: #b91c1c; }
+    .badge-warning  { background: #fffbeb;                      color: #92400e; }
+    .badge-info     { background: #eff6ff;                      color: #1d4ed8; }
+
+    /* ── Amount display ── */
+    .amount         { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .amount-positive { color: var(--color-positive); }
+    .amount-negative { color: var(--color-negative); }
+    .amount-neutral  { color: var(--color-text-secondary); }
+
+    /* ── Avatars ── */
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      flex-shrink: 0;
+      overflow: hidden;
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+    }
+    .avatar-sm  { width: 28px; height: 28px; font-size: 11px; }
+    .avatar-md  { width: 36px; height: 36px; font-size: 13px; }
+    .avatar-lg  { width: 48px; height: 48px; font-size: 16px; }
+    .avatar-xl  { width: 64px; height: 64px; font-size: 22px; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Avatar group (stacked) */
+    .avatar-group { display: flex; }
+    .avatar-group .avatar { border: 2px solid var(--color-surface); margin-left: -8px; }
+    .avatar-group .avatar:first-child { margin-left: 0; }
+
+    /* ── List items ── */
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-border);
+      transition: background 100ms ease;
+      cursor: pointer;
+    }
+    .list-item:last-child { border-bottom: none; }
+    .list-item:hover { background: var(--color-surface-hover); }
+
+    /* ── Dividers ── */
+    .divider { border: none; border-top: 1px solid var(--color-border); margin: 0; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 48px 24px;
+      color: var(--color-text-secondary);
+      text-align: center;
+    }
+    .empty-state-icon { font-size: 40px; opacity: .4; }
+    .empty-state-title { font-size: 16px; font-weight: 600; color: var(--color-text); }
+    .empty-state-desc  { font-size: 14px; max-width: 280px; }
+
+    /* ── Skeleton loader ── */
+    .skeleton {
+      background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+      background-size: 200% 100%;
+      border-radius: var(--radius-md);
+      animation: skeleton-shimmer 1.5s infinite;
+    }
+    @keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ── Topbar / App Shell ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / .04);
+    }
+    .topbar-logo {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -.01em;
+      text-decoration: none;
+    }
+    .topbar-spacer { flex: 1; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      border-radius: var(--radius-md);
+      margin: 2px 8px;
+      cursor: pointer;
+      transition: background 100ms ease, color 100ms ease;
+      text-decoration: none;
+    }
+    .sidebar-nav-item:hover { background: var(--color-surface-hover); color: var(--color-text); }
+    .sidebar-nav-item.active { background: var(--color-primary-subtle); color: var(--color-primary); }
+    .sidebar-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--color-text-muted);
+      padding: 16px 24px 4px;
+    }
+
+    /* ── Modal / Dialog ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgb(0 0 0 / .4);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+      width: 100%;
+      max-width: 480px;
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .modal-title  { font-size: 16px; font-weight: 600; }
+    .modal-body   { padding: 20px 24px; overflow-y: auto; flex: 1; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: var(--color-surface-card);
+    }
+
+    /* ── Tabs ── */
+    .tabs        { display: flex; border-bottom: 1px solid var(--color-border); gap: 0; }
+    .tab-item {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 120ms ease, border-color 120ms ease;
+      white-space: nowrap;
+    }
+    .tab-item:hover { color: var(--color-text); }
+    .tab-item.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+
+    /* ── Toggle / Checkbox ── */
+    .toggle {
+      width: 36px;
+      height: 20px;
+      background: var(--color-border);
+      border-radius: var(--radius-full);
+      position: relative;
+      cursor: pointer;
+      transition: background 150ms ease;
+      flex-shrink: 0;
+      border: none;
+      outline: none;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px;
+      border-radius: var(--radius-full);
+      background: #fff;
+      box-shadow: 0 1px 2px rgb(0 0 0 / .2);
+      transition: transform 150ms ease;
+    }
+    .toggle.on { background: var(--color-primary); }
+    .toggle.on::after { transform: translateX(16px); }
+
+    /* ── Progress / Settlement bar ── */
+    .progress-bar {
+      height: 8px;
+      background: var(--color-surface-hover);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      transition: width 300ms ease;
+    }
+    .progress-fill.positive { background: var(--color-positive); }
+    .progress-fill.negative { background: var(--color-negative); }
+
+    /* ── FAB (Floating Action Button) ── */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 30;
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgb(99 102 241 / .4);
+      font-size: 24px;
+      transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+    }
+    .fab:hover { background: var(--color-primary-hover); transform: translateY(-2px); box-shadow: 0 6px 16px rgb(99 102 241 / .45); }
+
+    /* ── Dropdown ── */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      min-width: 180px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
+      padding: 4px;
+      z-index: 50;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: var(--color-text);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 80ms ease;
+    }
+    .dropdown-item:hover { background: var(--color-surface-hover); }
+    .dropdown-item.danger { color: var(--color-negative); }
+    .dropdown-item.danger:hover { background: var(--color-negative-bg); }
+    .dropdown-divider { border: none; border-top: 1px solid var(--color-border); margin: 4px 0; }
+
+    /* ── Color swatch (group accent) ── */
+    .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-full);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* ── Responsive app layout ── */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+    .app-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .app-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    @media (min-width: 563px) {
+      .app-main { padding: 24px; }
+    }
+    @media (min-width: 1024px) {
+      .app-main { padding: 32px; }
+    }
+
+    /* Hide sidebar on mobile by default; show on lg */
+    .app-sidebar {
+      display: none;
+      height: calc(100vh - 56px);
+      position: sticky;
+      top: 56px;
+    }
+    @media (min-width: 1024px) {
+      .app-sidebar { display: flex; flex-direction: column; }
+    }
+
+    /* Mobile sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgb(0 0 0 / .4);
+    }
+    .sidebar-overlay.open { display: block; }
+    .sidebar-mobile {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 280px;
+      z-index: 41;
+      transform: translateX(-100%);
+      transition: transform 200ms ease;
+    }
+    .sidebar-mobile.open { transform: translateX(0); }
+
+    /* ── Utility helpers ── */
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sr-only  { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+
+<body class="h-full">
+
+  <!-- ═══════════════════════════════════════
+       APP SHELL
+       Replace content sections as needed.
+       Delete sidebar if not using --sidebar.
+       ═══════════════════════════════════════ -->
+
+  <div class="app-shell">
+
+    <!-- ── Topbar ── (identical on every page — do not add buttons or icons here) -->
+    <header class="topbar" role="banner">
+      <!-- Logo — canonical: text-only, no icons. Copy exactly. -->
+      <a href="#" class="topbar-logo" aria-label="Expenses — home">Expenses</a>
+
+      <div class="topbar-spacer"></div>
+
+      <!-- User avatar — canonical: copy exactly, initials "SD" for mockups -->
+      <button class="avatar avatar-sm" aria-label="Your profile" style="background:#6366f1;color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:600;">SD</button>
+    </header>
+
+    <!--
+      If the page needs group navigation (dashboard, expenses, members, settings),
+      add a secondary nav bar BELOW the topbar — never inside it. Example:
+
+    <nav aria-label="Switch group" style="position:sticky;top:56px;z-index:30;background:#fff;border-bottom:1px solid #e5e7eb;overflow-x:auto;">
+      <div role="tablist" style="display:flex;padding:0 16px;min-width:max-content;">
+        <button role="tab" aria-selected="true" ...>Group A</button>
+        <button role="tab" aria-selected="false" ...>Group B</button>
+      </div>
+    </nav>
+    -->
+
+    <!-- ── App body: sidebar + main ── -->
+    <div class="app-body">
+
+      <!-- Sidebar (desktop: sticky; mobile: overlay — delete if not --sidebar) -->
+      <aside class="app-sidebar sidebar" role="navigation" aria-label="Group navigation">
+        <div class="sidebar-section-label">Group</div>
+        <a href="#" class="sidebar-nav-item active" aria-current="page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="#" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Expenses
+        </a>
+        <a href="#" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Members
+        </a>
+        <a href="#" class="sidebar-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          Settings
+        </a>
+      </aside>
+
+      <!-- Mobile sidebar overlay (delete if not --sidebar) -->
+      <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileSidebar()" aria-hidden="true"></div>
+      <aside class="sidebar-mobile sidebar" id="sidebar-mobile" role="navigation" aria-label="Group navigation">
+        <div class="topbar" style="height:56px;">
+          <span class="topbar-logo">Expenses</span>
+          <div class="topbar-spacer"></div>
+          <button class="btn btn-ghost btn-icon" onclick="toggleMobileSidebar()" aria-label="Close menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="sidebar-section-label">Group</div>
+        <a href="#" class="sidebar-nav-item active">Dashboard</a>
+        <a href="#" class="sidebar-nav-item">Expenses</a>
+        <a href="#" class="sidebar-nav-item">Members</a>
+        <a href="#" class="sidebar-nav-item">Settings</a>
+      </aside>
+
+      <!-- ══════════════════════════════════
+           MAIN CONTENT — replace this block
+           ══════════════════════════════════ -->
+      <main class="app-main" id="main-content">
+
+        <!-- Page heading -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-xl font-semibold text-txt">{{PAGE_TITLE}}</h1>
+            <p class="text-sm text-txt-secondary mt-0.5">{{PAGE_SUBTITLE}}</p>
+          </div>
+          <button class="btn btn-primary hidden sm:flex">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add expense
+          </button>
+        </div>
+
+        <!-- ── EXAMPLE: Balance summary cards ── -->
+        <section aria-labelledby="balance-heading" class="mb-6">
+          <h2 id="balance-heading" class="text-sm font-semibold text-txt-secondary uppercase tracking-wide mb-3">Balances</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+            <div class="card card-body p-4 flex items-center gap-3">
+              <div class="avatar avatar-md" style="background:#eef2ff;color:#6366f1;">A</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium truncate">Ana García</div>
+                <div class="text-xs text-txt-secondary">is owed</div>
+              </div>
+              <div class="amount amount-positive text-lg">+€42.00</div>
+            </div>
+
+            <div class="card card-body p-4 flex items-center gap-3">
+              <div class="avatar avatar-md" style="background:#fef2f2;color:#ef4444;">M</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium truncate">Marco Rossi</div>
+                <div class="text-xs text-txt-secondary">owes</div>
+              </div>
+              <div class="amount amount-negative text-lg">−€18.50</div>
+            </div>
+
+            <div class="card card-body p-4 flex items-center gap-3">
+              <div class="avatar avatar-md" style="background:#f0fdf4;color:#22c55e;">L</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium truncate">Lena Schmidt</div>
+                <div class="text-xs text-txt-secondary">settled up</div>
+              </div>
+              <div class="amount amount-neutral text-lg">€0.00</div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ── EXAMPLE: Recent expenses list ── -->
+        <section aria-labelledby="expenses-heading">
+          <h2 id="expenses-heading" class="text-sm font-semibold text-txt-secondary uppercase tracking-wide mb-3">Recent expenses</h2>
+          <div class="card">
+            <ul role="list">
+
+              <li class="list-item">
+                <div class="avatar avatar-sm" style="background:#eef2ff;color:#6366f1;">A</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium truncate">Dinner at La Paloma</div>
+                  <div class="text-xs text-txt-secondary">Ana · 18 Feb 2026</div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <div class="font-semibold">€68.00</div>
+                  <div class="text-xs text-txt-secondary">your share: €17.00</div>
+                </div>
+              </li>
+
+              <li class="list-item">
+                <div class="avatar avatar-sm" style="background:#fffbeb;color:#f59e0b;">M</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium truncate">Fuel — A7 highway</div>
+                  <div class="text-xs text-txt-secondary">Marco · 17 Feb 2026</div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <div class="font-semibold">€54.30</div>
+                  <div class="text-xs text-txt-secondary">your share: €13.58</div>
+                </div>
+              </li>
+
+              <li class="list-item">
+                <div class="avatar avatar-sm" style="background:#f0fdf4;color:#22c55e;">L</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium truncate">Airbnb deposit</div>
+                  <div class="text-xs text-txt-secondary">Lena · 15 Feb 2026</div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <div class="font-semibold">€240.00</div>
+                  <div class="text-xs text-txt-secondary">your share: €60.00</div>
+                </div>
+              </li>
+
+            </ul>
+            <div class="card-footer text-center">
+              <a href="#" class="text-sm font-medium text-primary hover:text-primary-hover">View all expenses</a>
+            </div>
+          </div>
+        </section>
+
+      </main>
+      <!-- ── end main content ── -->
+
+    </div><!-- end app-body -->
+  </div><!-- end app-shell -->
+
+  <!-- FAB — always visible on every breakpoint; sole trigger for the primary action.
+       Never add sm:hidden or any responsive class. Omit entirely if the page has no primary action. -->
+  <button class="fab" aria-label="{{Primary action label}}" aria-haspopup="dialog" onclick="openModal('modal-example')">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- ════════════════════════
+       MODAL EXAMPLE
+       Add `class="hidden"` to .modal-backdrop to hide it by default.
+       Remove `hidden` to show it open (--modal flag).
+       ════════════════════════ -->
+  <div class="modal-backdrop hidden" id="modal-example" role="dialog" aria-modal="true" aria-labelledby="modal-title-example">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title-example">Add expense</h2>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="closeModal('modal-example')" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="flex flex-col gap-4">
+          <div class="form-group">
+            <label class="form-label" for="expense-title">Title</label>
+            <input class="input" id="expense-title" type="text" placeholder="e.g. Dinner at La Paloma" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="form-group">
+              <label class="form-label" for="expense-amount">Amount (€)</label>
+              <input class="input" id="expense-amount" type="number" min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="expense-date">Date</label>
+              <input class="input" id="expense-date" type="date" value="2026-02-20" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="expense-paid-by">Paid by</label>
+            <select class="select" id="expense-paid-by">
+              <option>Ana García</option>
+              <option>Marco Rossi</option>
+              <option>Lena Schmidt</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <span class="form-label">Split between</span>
+            <div class="card p-0 mt-1">
+              <div class="list-item" style="cursor:default;">
+                <div class="avatar avatar-sm" style="background:#eef2ff;color:#6366f1;">A</div>
+                <span class="flex-1">Ana García</span>
+                <button class="toggle on" aria-label="Include Ana" aria-pressed="true" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="list-item" style="cursor:default;">
+                <div class="avatar avatar-sm" style="background:#fffbeb;color:#f59e0b;">M</div>
+                <span class="flex-1">Marco Rossi</span>
+                <button class="toggle on" aria-label="Include Marco" aria-pressed="true" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="list-item" style="cursor:default;">
+                <div class="avatar avatar-sm" style="background:#f0fdf4;color:#22c55e;">L</div>
+                <span class="flex-1">Lena Schmidt</span>
+                <button class="toggle on" aria-label="Include Lena" aria-pressed="true" onclick="this.classList.toggle('on')"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-example')">Cancel</button>
+        <button class="btn btn-primary">Save expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════
+       MINIMAL JS UTILITIES
+       ════════════════════ -->
+  <script>
+    // ── Modal ──
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) { el.classList.remove('hidden'); el.focus(); }
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+    // Close modal on backdrop click
+    document.querySelectorAll('.modal-backdrop').forEach(el => {
+      el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+    });
+    // Close modal on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(el => closeModal(el.id));
+    });
+
+    // ── Dropdown ──
+    function toggleDropdown(id) {
+      const menu = document.getElementById(id);
+      menu.classList.toggle('hidden');
+    }
+    document.addEventListener('click', e => {
+      document.querySelectorAll('.dropdown-menu:not(.hidden)').forEach(menu => {
+        if (!menu.closest('.dropdown').contains(e.target)) menu.classList.add('hidden');
+      });
+    });
+
+    // ── Mobile sidebar ──
+    function toggleMobileSidebar() {
+      document.getElementById('sidebar-mobile').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>
