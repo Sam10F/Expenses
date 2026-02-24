@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
+import { config } from 'dotenv'
+
+// Load .env so credentials are available in global-setup and test helpers
+config()
 
 export default defineConfig({
   testDir: './tests/e2e',

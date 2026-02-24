@@ -179,6 +179,7 @@ export type Database = {
       members: {
         Row: {
           avatar_url: string | null
+          color: string
           created_at: string
           group_id: string
           id: string
@@ -186,6 +187,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          color?: string
           created_at?: string
           group_id: string
           id?: string
@@ -193,6 +195,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          color?: string
           created_at?: string
           group_id?: string
           id?: string

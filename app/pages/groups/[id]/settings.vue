@@ -106,27 +106,46 @@
           <ul
             v-if="members.length"
             role="list"
-            style="list-style:none;padding:0;margin:0 0 16px;display:flex;flex-direction:column;gap:8px;"
+            style="list-style:none;padding:0;margin:0 0 16px;display:flex;flex-direction:column;gap:0;"
           >
             <li
               v-for="m in members"
               :key="m.id"
-              style="display:flex;align-items:center;gap:10px;"
+              style="display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--color-border);"
             >
-              <AppAvatar :name="m.name" size="sm" :aria-hidden="true" />
-              <span style="flex:1;font-size:14px;">{{ m.name }}</span>
-              <button
-                class="btn btn-ghost btn-icon"
-                :aria-label="`${t('members.remove')} ${m.name}`"
-                @click="handleRemoveMember(m.id, m.name)"
+              <div style="display:flex;align-items:center;gap:10px;">
+                <AppAvatar :name="m.name" :color="m.color" size="sm" :aria-hidden="true" />
+                <span style="flex:1;font-size:14px;">{{ m.name }}</span>
+                <button
+                  class="btn btn-ghost btn-icon"
+                  :aria-label="`${t('members.remove')} ${m.name}`"
+                  @click="handleRemoveMember(m.id, m.name)"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14H6L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4h6v2" />
+                  </svg>
+                </button>
+              </div>
+              <!-- Per-member color picker -->
+              <div
+                style="display:flex;gap:4px;padding-left:38px;"
+                role="group"
+                :aria-label="t('members.colorLabel') + ' ' + m.name"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14H6L5 6" />
-                  <path d="M10 11v6M14 11v6" />
-                  <path d="M9 6V4h6v2" />
-                </svg>
-              </button>
+                <button
+                  v-for="c in MEMBER_COLORS"
+                  :key="c"
+                  type="button"
+                  class="member-color-swatch"
+                  :class="[`color-${c}`, { selected: m.color === c }]"
+                  :aria-label="c"
+                  :aria-pressed="m.color === c"
+                  @click="handleMemberColorChange(m.id, m.name, c)"
+                ></button>
+              </div>
             </li>
           </ul>
 
@@ -192,7 +211,7 @@
 import { useId } from 'vue'
 import { useGroupsStore } from '~/stores/groups'
 import { useMembers } from '~/composables/useMembers'
-import { GROUP_COLORS } from '#types/app'
+import { GROUP_COLORS, MEMBER_COLORS } from '#types/app'
 
 definePageMeta({ layout: 'default' })
 
@@ -277,6 +296,10 @@ async function handleAddMember() {
   finally {
     addingMember.value = false
   }
+}
+
+async function handleMemberColorChange(memberId: string, name: string, color: string) {
+  await membersComp.updateMember(memberId, { name, color })
 }
 
 async function handleRemoveMember(memberId: string, name: string) {

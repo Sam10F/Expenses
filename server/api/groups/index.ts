@@ -67,8 +67,8 @@ export default defineEventHandler(async (event) => {
     if (body.members.length > 0) {
       await supabase.from('members').insert(
         body.members
-          .filter(name => name.trim())
-          .map(name => ({ group_id: group.id, name: name.trim() })),
+          .filter(m => m.name.trim())
+          .map(m => ({ group_id: group.id, name: m.name.trim(), color: m.color || 'indigo' })),
       )
     }
 

@@ -10,16 +10,17 @@
 </template>
 
 <script setup lang="ts">
-import { getMemberColorHex, getInitials } from '~/utils/memberColor'
+import { getColorHex, getInitials } from '~/utils/memberColor'
 
 const props = defineProps<{
-  name:       string
-  size?:      'sm' | 'md' | 'lg' | 'xl'
-  avatarUrl?: string
+  name:        string
+  size?:       'sm' | 'md' | 'lg' | 'xl'
+  color?:      string
+  avatarUrl?:  string
   ariaHidden?: boolean | 'true' | 'false'
 }>()
 
 const sizeClass = computed(() => `avatar-${props.size ?? 'md'}`)
-const bgColor   = computed(() => getMemberColorHex(props.name))
+const bgColor   = computed(() => getColorHex(props.color ?? '', props.name))
 const initials  = computed(() => getInitials(props.name))
 </script>

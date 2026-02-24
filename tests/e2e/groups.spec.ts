@@ -57,6 +57,33 @@ test.describe('Groups', () => {
     if (groupId) await deleteTestGroup(groupId)
   })
 
+  test('create group with custom color', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    await page.locator('[aria-label="Create new group"]').first().click()
+
+    await page.getByLabel(/group name/i).fill('Color Test Group')
+
+    // Select emerald color (within the Accent color group)
+    const colorGroup = page.getByRole('group', { name: /accent color/i })
+    const emeraldSwatch = colorGroup.getByRole('button', { name: 'emerald' })
+    await emeraldSwatch.click()
+    await expect(emeraldSwatch).toHaveAttribute('aria-pressed', 'true')
+
+    // Add a member and submit
+    await page.getByPlaceholder(/member name/i).fill('Alice')
+    await page.getByRole('button', { name: /^add$/i }).click()
+    await page.getByRole('button', { name: /create group/i }).click()
+
+    await expect(page).toHaveURL(/\/groups\//)
+
+    // Cleanup
+    const url = page.url()
+    const groupId = url.match(/\/groups\/([^/]+)/)?.[1]
+    if (groupId) await deleteTestGroup(groupId)
+  })
+
   test('delete group via settings redirects to home', async ({ page }) => {
     const name = `Delete Test ${Date.now()}`
     const { groupId } = await createTestGroup(name, ['Alice'])
@@ -96,6 +123,30 @@ test.describe('Groups', () => {
     finally {
       await deleteTestGroup(g1Id)
       await deleteTestGroup(g2Id)
+    }
+  })
+
+  test('section tabs navigate between Balance, Expenses, and Settings', async ({ page }) => {
+    const { groupId } = await createTestGroup(`Alpha ${Date.now()}`, ['Alice'])
+
+    try {
+      await page.goto(`/groups/${groupId}`)
+      await page.waitForLoadState('networkidle')
+
+      // Navigate to Expenses tab
+      await page.getByRole('link', { name: /^expenses$/i }).click()
+      await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/expenses`))
+
+      // Navigate to Settings tab
+      await page.getByRole('link', { name: /^settings$/i }).click()
+      await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/settings`))
+
+      // Navigate back to Balance tab
+      await page.getByRole('link', { name: /^balances$/i }).click()
+      await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`))
+    }
+    finally {
+      await deleteTestGroup(groupId)
     }
   })
 })

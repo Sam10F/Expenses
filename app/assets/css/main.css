@@ -617,6 +617,21 @@ html {
 }
 
 /* ============================================================
+   Member color swatches (smaller than group color swatches)
+   ============================================================ */
+.member-color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+.member-color-swatch:hover { transform: scale(1.15); }
+.member-color-swatch.selected { border-color: var(--color-text); }
+.member-color-swatch:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* ============================================================
    Color palette for group/category colors
    ============================================================ */
 .color-indigo  { background-color: #6366f1; }

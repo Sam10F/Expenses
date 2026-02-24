@@ -83,6 +83,12 @@ export async function cleanupStaleTestGroups(): Promise<void> {
       'name.ilike.Delete Test %',   // delete-group test
       'name.ilike.Group Alpha%',    // old stale hardcoded names
       'name.ilike.Group Beta%',     // old stale hardcoded names
+      'name.ilike.Color Test%',     // color tests
+      'name.ilike.Settings Test%',  // settings tests
+      'name.ilike.Category Test%',  // category tests
+      'name.ilike.Pagination Test%', // pagination tests
+      'name.ilike.Settlement %',    // settlement tests
+      'name.ilike.Show More %',     // show more settlements tests
     ].join(','))
 }
 
@@ -126,4 +132,70 @@ export async function createTestExpense(
   if (splitsErr) throw new Error(`createTestExpense: failed to create splits — ${splitsErr.message}`)
 
   return expense
+}
+
+/**
+ * Create multiple test expenses in bulk (for pagination tests).
+ */
+export async function createTestExpensesBulk(
+  groupId:    string,
+  paidById:   string,
+  categoryId: string,
+  memberIds:  string[],
+  count:      number,
+): Promise<void> {
+  const today = new Date().toISOString().split('T')[0]!
+  const amount = 10
+  const splitAmount = Math.round((amount / memberIds.length) * 100) / 100
+
+  const expensesToInsert = Array.from({ length: count }, (_, i) => ({
+    group_id:    groupId,
+    paid_by:     paidById,
+    category_id: categoryId,
+    title:       `Bulk Expense ${i + 1}`,
+    amount,
+    date:        today,
+  }))
+
+  const { data: expenses, error } = await adminClient
+    .from('expenses')
+    .insert(expensesToInsert)
+    .select('id')
+
+  if (error || !expenses) throw new Error(`createTestExpensesBulk: ${error?.message}`)
+
+  const splits = expenses.flatMap(exp =>
+    memberIds.map(memberId => ({
+      expense_id:  exp.id,
+      member_id:   memberId,
+      amount:      splitAmount,
+      is_included: true,
+    })),
+  )
+
+  const { error: splitsError } = await adminClient.from('expense_splits').insert(splits)
+  if (splitsError) throw new Error(`createTestExpensesBulk splits: ${splitsError.message}`)
+}
+
+/**
+ * Create a custom (non-default) category for a group.
+ */
+export async function createTestCategory(
+  groupId: string,
+  options: { name?: string; color?: string; icon?: string } = {},
+): Promise<string> {
+  const { data, error } = await adminClient
+    .from('categories')
+    .insert({
+      group_id:   groupId,
+      name:       options.name ?? 'Test Category',
+      color:      options.color ?? 'amber',
+      icon:       options.icon ?? 'food',
+      is_default: false,
+    })
+    .select('id')
+    .single()
+
+  if (error || !data) throw new Error(`createTestCategory: ${error?.message}`)
+  return data.id
 }

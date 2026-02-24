@@ -5,15 +5,18 @@ export default defineEventHandler(async (event) => {
   if (!memberId) throw createError({ statusCode: 400, message: 'Member ID required' })
 
   if (event.method === 'PUT') {
-    const body = await readBody<{ name: string }>(event)
+    const body = await readBody<{ name: string; color?: string }>(event)
 
     if (!body.name?.trim()) {
       throw createError({ statusCode: 400, message: 'Member name is required' })
     }
 
+    const update: { name: string; color?: string } = { name: body.name.trim() }
+    if (body.color) update.color = body.color
+
     const { data, error } = await supabase
       .from('members')
-      .update({ name: body.name.trim() })
+      .update(update)
       .eq('id', memberId)
       .select()
       .single()

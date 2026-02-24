@@ -29,7 +29,7 @@ export function useMembers(groupId: MaybeRef<string>) {
     return data
   }
 
-  async function updateMember(memberId: string, payload: { name: string }) {
+  async function updateMember(memberId: string, payload: { name: string; color?: string }) {
     const data = await $fetch<Member>(`/api/groups/${toValue(groupId)}/members/${memberId}`, {
       method: 'PUT',
       body: payload,

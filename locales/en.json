@@ -139,7 +139,8 @@
     },
     "remove": "Remove member",
     "removeConfirm": "Remove {name} from this group?",
-    "maxReached": "Maximum 10 members per group"
+    "maxReached": "Maximum 10 members per group",
+    "colorLabel": "Color for"
   },
   "settings": {
     "title": "Settings",

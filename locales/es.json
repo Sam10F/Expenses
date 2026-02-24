@@ -139,6 +139,7 @@
     },
     "remove": "Eliminar miembro",
     "removeConfirm": "¿Eliminar a {name} de este grupo?",
+    "colorLabel": "Color de",
     "maxReached": "Máximo 10 miembros por grupo"
   },
   "settings": {

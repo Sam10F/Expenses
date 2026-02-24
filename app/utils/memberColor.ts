@@ -25,10 +25,18 @@ export function getMemberColor(name: string): string {
 }
 
 /**
- * Returns the hex color value for a member.
+ * Returns the hex color value for a member derived from their name.
  */
 export function getMemberColorHex(name: string): string {
   return COLOR_HEX[getMemberColor(name)] ?? '#6366f1'
+}
+
+/**
+ * Returns the hex value for an explicit color name (e.g. stored in DB).
+ * Falls back to deriving from the member name if the color is unknown.
+ */
+export function getColorHex(colorName: string, fallbackName = ''): string {
+  return COLOR_HEX[colorName] ?? getMemberColorHex(fallbackName)
 }
 
 /**

@@ -68,4 +68,85 @@ test.describe('Balance', () => {
     await expect(settlementSection).toBeVisible()
     await expect(page.getByText('€15.00', { exact: true })).toBeVisible()
   })
+
+  test('settlement record button opens expense modal pre-filled', async ({ page }) => {
+    // Alice pays €20, Bob owes €10 → settlement: Bob → Alice pays €10
+    await createTestExpense(
+      groupId,
+      memberIds['Alice']!,
+      defaultCategoryId,
+      Object.values(memberIds),
+      { title: 'Dinner', amount: 20 },
+    )
+
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // Click the settlement row button (aria-label starts with "Record settlement")
+    // The button class is "settlement-row"; look for any button matching "Record settlement"
+    const settlementBtn = page.locator('button.settlement-row')
+    await expect(settlementBtn).toBeVisible()
+    await settlementBtn.click()
+
+    // Expense modal should open (with "Add Expense" title — it's a new expense, not an edit)
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('heading', { name: /add expense/i })).toBeVisible()
+
+    // The title field should be pre-filled with "Bob → Alice"
+    const titleInput = dialog.getByLabel(/title/i)
+    await expect(titleInput).toHaveValue(/bob.*alice/i)
+
+    // The amount should be pre-filled with €10.00
+    const amountInput = dialog.getByLabel(/amount/i)
+    await expect(amountInput).toHaveValue('10')
+  })
+
+  test('show more / show less settlements when more than 5 exist', async ({ page }) => {
+    // Create a group with 7 members — Alice pays for all → 6 settlements
+    const { groupId: bigGroupId, memberIds: bigMemberIds, defaultCategoryId: bigCatId }
+      = await createTestGroup('Show More Settlements', ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace'])
+
+    try {
+      // Alice pays €70 split 7 ways → each person owes €10, Alice is owed €60
+      // This creates 6 settlements (Bob, Charlie, David, Eve, Frank, Grace → Alice)
+      await createTestExpense(
+        bigGroupId,
+        bigMemberIds['Alice']!,
+        bigCatId,
+        Object.values(bigMemberIds),
+        { amount: 70 },
+      )
+
+      await page.goto(`/groups/${bigGroupId}`)
+      await page.waitForLoadState('networkidle')
+
+      // With 6 settlements (> 5 limit), "Show more" button should appear
+      const showMoreBtn = page.getByRole('button', { name: /show more/i })
+      await expect(showMoreBtn).toBeVisible()
+
+      // Some settlements should be hidden — Grace's should not yet be visible
+      // (settlements are ordered by the algorithm; at least 1 is hidden)
+      await showMoreBtn.click()
+
+      // After clicking, "Show less" should appear
+      await expect(page.getByRole('button', { name: /show less/i })).toBeVisible()
+      await expect(showMoreBtn).not.toBeVisible()
+
+      // Collapse again
+      await page.getByRole('button', { name: /show less/i }).click()
+      await expect(page.getByRole('button', { name: /show more/i })).toBeVisible()
+    }
+    finally {
+      await deleteTestGroup(bigGroupId)
+    }
+  })
+
+  test('"All settled up!" shown when balances are zero', async ({ page }) => {
+    // No expenses → all balances are €0.00
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByText(/all settled up/i)).toBeVisible()
+  })
 })

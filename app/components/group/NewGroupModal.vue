@@ -78,25 +78,43 @@
         <ul
           v-if="form.members.length"
           role="list"
-          style="list-style:none;padding:0;margin:8px 0;display:flex;flex-direction:column;gap:6px;"
+          style="list-style:none;padding:0;margin:8px 0;display:flex;flex-direction:column;gap:8px;"
         >
           <li
             v-for="(member, i) in form.members"
             :key="i"
-            style="display:flex;align-items:center;gap:8px;"
+            style="display:flex;flex-direction:column;gap:4px;"
           >
-            <AppAvatar :name="member" size="sm" aria-hidden="true" />
-            <span style="flex:1;font-size:14px;">{{ member }}</span>
-            <button
-              type="button"
-              class="btn btn-ghost btn-icon"
-              :aria-label="t('members.remove') + ' ' + member"
-              @click="removeMember(i)"
+            <div style="display:flex;align-items:center;gap:8px;">
+              <AppAvatar :name="member.name" :color="member.color" size="sm" aria-hidden="true" />
+              <span style="flex:1;font-size:14px;">{{ member.name }}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-icon"
+                :aria-label="t('members.remove') + ' ' + member.name"
+                @click="removeMember(i)"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div
+              style="display:flex;gap:4px;padding-left:36px;"
+              role="group"
+              :aria-label="t('members.colorLabel') + ' ' + member.name"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+              <button
+                v-for="c in MEMBER_COLORS"
+                :key="c"
+                type="button"
+                class="member-color-swatch"
+                :class="[`color-${c}`, { selected: member.color === c }]"
+                :aria-label="c"
+                :aria-pressed="member.color === c"
+                @click="member.color = c"
+              ></button>
+            </div>
           </li>
         </ul>
 
@@ -152,7 +170,7 @@
 
 <script setup lang="ts">
 import { useId } from 'vue'
-import { GROUP_COLORS } from '#types/app'
+import { GROUP_COLORS, MEMBER_COLORS } from '#types/app'
 
 defineProps<{
   open: boolean
@@ -172,7 +190,7 @@ const form = reactive({
   name:        '',
   description: '',
   color:       'indigo' as string,
-  members:     [] as string[],
+  members:     [] as { name: string; color: string }[],
 })
 
 const errors = reactive({
@@ -187,7 +205,8 @@ function addMember() {
   const name = newMemberName.value.trim()
   if (!name) return
   if (form.members.length >= 10) return
-  form.members.push(name)
+  const color = MEMBER_COLORS[form.members.length % MEMBER_COLORS.length] as string
+  form.members.push({ name, color })
   newMemberName.value = ''
 }
 

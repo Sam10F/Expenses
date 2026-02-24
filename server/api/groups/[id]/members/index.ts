@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
 
     const { data, error } = await supabase
       .from('members')
-      .insert({ group_id: groupId, name: body.name.trim() })
+      .insert({ group_id: groupId, name: body.name.trim(), color: body.color || 'indigo' })
       .select()
       .single()
 

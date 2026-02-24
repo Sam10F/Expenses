@@ -76,7 +76,7 @@ export interface CreateGroupPayload {
   name:        string
   description: string
   color:       string
-  members:     string[] // member names
+  members:     Array<{ name: string; color: string }>
 }
 
 export interface UpdateGroupPayload {
@@ -109,7 +109,8 @@ export interface CreateCategoryPayload {
 }
 
 export interface AddMemberPayload {
-  name: string
+  name:   string
+  color?: string
 }
 
 // ============================================================
@@ -121,6 +122,10 @@ export const GROUP_COLORS = [
 ] as const
 
 export type GroupColor = typeof GROUP_COLORS[number]
+
+export const MEMBER_COLORS = GROUP_COLORS
+
+export type MemberColor = typeof MEMBER_COLORS[number]
 
 export const CATEGORY_COLORS = [
   'indigo', 'amber', 'emerald', 'rose', 'sky', 'violet', 'orange', 'teal', 'pink', 'slate',
