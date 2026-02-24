@@ -1,11 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Page } from '@playwright/test'
 
 const SUPABASE_URL = process.env.SUPABASE_URL
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   throw new Error(
-    'Missing Supabase credentials for tests. Ensure SUPABASE_URL and SUPABASE_ANON_KEY are set in .env',
+    'Missing Supabase credentials for tests. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set in .env',
   )
 }
 
@@ -13,26 +15,113 @@ export const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+
 /**
- * Create a test group with members and a default category.
- * Returns the created group ID.
+ * Create a Supabase auth user + profile for testing.
+ * Returns userId and a valid access token.
  */
-export async function createTestGroup(name = 'Test Group', members = ['Alice', 'Bob']): Promise<{
-  groupId:   string
-  memberIds: Record<string, string>
+export async function createTestUser(baseUsername = 'testuser'): Promise<{
+  userId:   string
+  username: string
+  token:    string
+}> {
+  const suffix = String(Date.now() % 1000000)
+  const base = baseUsername.slice(0, 20 - 1 - suffix.length)
+  const username = `${base}_${suffix}` // max 20 chars (constraint limit)
+  const email = `${username}@app.internal`
+  const password = 'TestPassword123!'
+
+  const { data, error } = await adminClient.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  })
+  if (error || !data.user) throw new Error(`createTestUser: ${error?.message}`)
+  const userId = data.user.id
+
+  const { error: profileError } = await adminClient.from('profiles').insert({ id: userId, username })
+  if (profileError) throw new Error(`createTestUser: profile insert failed — ${profileError.message}`)
+
+  // Sign in to get a valid session token
+  const anonClient = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+  const { data: session, error: signInError } = await anonClient.auth.signInWithPassword({ email, password })
+  if (signInError || !session.session) throw new Error(`createTestUser: sign in failed — ${signInError?.message}`)
+
+  return { userId, username, token: session.session.access_token }
+}
+
+/**
+ * Delete a test auth user and their profile.
+ */
+export async function deleteTestUser(userId: string) {
+  await adminClient.auth.admin.deleteUser(userId)
+}
+
+/**
+ * Register an init script that injects auth tokens into localStorage on every
+ * subsequent page navigation. Call this BEFORE page.goto() so the auth store
+ * picks up the tokens before the Nuxt plugin runs.
+ */
+export async function loginTestUser(
+  page: Page,
+  userId: string,
+  username: string,
+  token: string,
+) {
+  await page.addInitScript(({ t, u, uid }) => {
+    localStorage.setItem('auth_token', t)
+    localStorage.setItem('auth_refresh_token', '')
+    localStorage.setItem('auth_user', JSON.stringify({ id: uid, username: u }))
+  }, { t: token, u: username, uid: userId })
+}
+
+/**
+ * Delete all test auth users whose usernames match known test patterns.
+ */
+export async function cleanupStaleTestUsers(): Promise<void> {
+  const { data: profiles } = await adminClient
+    .from('profiles')
+    .select('id')
+    .or([
+      'username.ilike.testuser_%',
+      'username.ilike.adminuser_%',
+      'username.ilike.watcheruser_%',
+    ].join(','))
+
+  if (!profiles?.length) return
+
+  for (const profile of profiles) {
+    await adminClient.auth.admin.deleteUser(profile.id)
+  }
+}
+
+// ── Group helpers ─────────────────────────────────────────────────────────────
+
+/**
+ * Create a test group with a default General category and an admin member row
+ * linked to the given userId.
+ */
+export async function createTestGroup(
+  name = 'Test Group',
+  userId: string,
+  options: { color?: string; username?: string } = {},
+): Promise<{
+  groupId:           string
+  adminMemberId:     string
   defaultCategoryId: string
 }> {
-  // Create group
   const { data: group, error: groupErr } = await adminClient
     .from('groups')
-    .insert({ name, color: 'indigo' })
+    .insert({ name, color: options.color ?? 'indigo' })
     .select()
     .single()
 
   if (groupErr || !group) throw new Error(`createTestGroup: failed to create group — ${groupErr?.message}`)
   const groupId = group.id
 
-  // Create default category
   const { data: cat, error: catErr } = await adminClient
     .from('categories')
     .insert({ group_id: groupId, name: 'General', color: 'gray', icon: 'general', is_default: true })
@@ -41,19 +130,39 @@ export async function createTestGroup(name = 'Test Group', members = ['Alice', '
 
   if (catErr || !cat) throw new Error(`createTestGroup: failed to create category — ${catErr?.message}`)
 
-  // Create members
-  const memberIds: Record<string, string> = {}
-  for (const memberName of members) {
-    const { data: m, error: memberErr } = await adminClient
-      .from('members')
-      .insert({ group_id: groupId, name: memberName })
-      .select()
-      .single()
-    if (memberErr || !m) throw new Error(`createTestGroup: failed to create member '${memberName}' — ${memberErr?.message}`)
-    memberIds[memberName] = m.id
-  }
+  const { data: member, error: memberErr } = await adminClient
+    .from('members')
+    .insert({
+      group_id: groupId,
+      user_id:  userId,
+      name:     options.username ?? 'Test User',
+      color:    'indigo',
+      role:     'admin',
+    })
+    .select()
+    .single()
 
-  return { groupId, memberIds, defaultCategoryId: cat.id }
+  if (memberErr || !member) throw new Error(`createTestGroup: failed to create member — ${memberErr?.message}`)
+
+  return { groupId, adminMemberId: member.id, defaultCategoryId: cat.id }
+}
+
+/**
+ * Add a non-admin member to an existing test group (without user account).
+ */
+export async function addTestMember(
+  groupId: string,
+  name: string,
+  role: 'admin' | 'user' | 'watcher' = 'user',
+): Promise<string> {
+  const { data, error } = await adminClient
+    .from('members')
+    .insert({ group_id: groupId, name, color: 'amber', role })
+    .select()
+    .single()
+
+  if (error || !data) throw new Error(`addTestMember: ${error?.message}`)
+  return data.id
 }
 
 /**
@@ -65,7 +174,6 @@ export async function deleteTestGroup(groupId: string) {
 
 /**
  * Delete all groups created by Playwright tests (by known name patterns).
- * Safe to call before a test run to remove stale data from crashed/incomplete runs.
  */
 export async function cleanupStaleTestGroups(): Promise<void> {
   await adminClient
@@ -77,23 +185,25 @@ export async function cleanupStaleTestGroups(): Promise<void> {
       'name.eq.Member Test Group',
       'name.eq.Expense Test Group',
       'name.eq.Weekend Trip',
-      'name.eq.Test',               // stale manual test groups
-      'name.ilike.Alpha %',         // Alpha <timestamp>
-      'name.ilike.Beta %',          // Beta <timestamp>
-      'name.ilike.Delete Test %',   // delete-group test
-      'name.ilike.Group Alpha%',    // old stale hardcoded names
-      'name.ilike.Group Beta%',     // old stale hardcoded names
-      'name.ilike.Color Test%',     // color tests
-      'name.ilike.Settings Test%',  // settings tests
-      'name.ilike.Category Test%',  // category tests
-      'name.ilike.Pagination Test%', // pagination tests
-      'name.ilike.Settlement %',    // settlement tests
-      'name.ilike.Show More %',     // show more settlements tests
+      'name.eq.Test',
+      'name.ilike.Alpha %',
+      'name.ilike.Beta %',
+      'name.ilike.Delete Test %',
+      'name.ilike.Group Alpha%',
+      'name.ilike.Group Beta%',
+      'name.ilike.Color Test%',
+      'name.ilike.Settings Test%',
+      'name.ilike.Category Test%',
+      'name.ilike.Pagination Test%',
+      'name.ilike.Settlement %',
+      'name.ilike.Show More %',
     ].join(','))
 }
 
+// ── Expense helpers ───────────────────────────────────────────────────────────
+
 /**
- * Create a test expense with equal splits among all members.
+ * Create a test expense with equal splits among the given member IDs.
  */
 export async function createTestExpense(
   groupId:    string,
@@ -175,6 +285,25 @@ export async function createTestExpensesBulk(
 
   const { error: splitsError } = await adminClient.from('expense_splits').insert(splits)
   if (splitsError) throw new Error(`createTestExpensesBulk splits: ${splitsError.message}`)
+}
+
+/**
+ * Create a test invitation directly in the DB (bypasses the invitation UI).
+ */
+export async function createTestInvitation(
+  groupId:         string,
+  invitedByUserId: string,
+  invitedUserId:   string,
+  role:            'user' | 'watcher' = 'user',
+): Promise<string> {
+  const { data, error } = await adminClient
+    .from('invitations')
+    .insert({ group_id: groupId, invited_by: invitedByUserId, invited_user_id: invitedUserId, role })
+    .select('id')
+    .single()
+
+  if (error || !data) throw new Error(`createTestInvitation: ${error?.message}`)
+  return data.id
 }
 
 /**

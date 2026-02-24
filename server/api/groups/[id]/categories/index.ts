@@ -1,10 +1,13 @@
 import type { CreateCategoryPayload } from '#types/app'
 
 export default defineEventHandler(async (event) => {
+  const { userId } = await requireAuth(event)
   const supabase = createSupabaseAdmin()
   const groupId = getRouterParam(event, 'id')
 
   if (!groupId) throw createError({ statusCode: 400, message: 'Group ID required' })
+
+  const member = await requireGroupMember(groupId, userId)
 
   if (event.method === 'GET') {
     const { data, error } = await supabase
@@ -20,6 +23,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'POST') {
+    if (member.role === 'watcher') {
+      throw createError({ statusCode: 403, message: 'Watchers cannot create categories' })
+    }
+
     const body = await readBody<CreateCategoryPayload>(event)
 
     if (!body.name?.trim()) {

@@ -1,6 +1,7 @@
 import type { GroupWithStats, CreateGroupPayload, UpdateGroupPayload } from '#types/app'
 
 export function useGroups() {
+  const apiFetch = useApi()
   const groups = useState<GroupWithStats[]>('groups', () => [])
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -9,7 +10,7 @@ export function useGroups() {
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch<GroupWithStats[]>('/api/groups')
+      const data = await apiFetch<GroupWithStats[]>('/api/groups')
       groups.value = data
     }
     catch (e) {
@@ -21,19 +22,19 @@ export function useGroups() {
   }
 
   async function createGroup(payload: CreateGroupPayload) {
-    const data = await $fetch('/api/groups', { method: 'POST', body: payload })
+    const data = await apiFetch('/api/groups', { method: 'POST', body: payload })
     await fetchGroups()
     return data
   }
 
   async function updateGroup(id: string, payload: UpdateGroupPayload) {
-    const data = await $fetch(`/api/groups/${id}`, { method: 'PUT', body: payload })
+    const data = await apiFetch(`/api/groups/${id}`, { method: 'PUT', body: payload })
     await fetchGroups()
     return data
   }
 
   async function deleteGroup(id: string) {
-    await $fetch(`/api/groups/${id}`, { method: 'DELETE' })
+    await apiFetch(`/api/groups/${id}`, { method: 'DELETE' })
     await fetchGroups()
   }
 

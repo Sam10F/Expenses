@@ -3,6 +3,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'node:url'
 
 export default defineNuxtConfig({
+  ssr: false,
+
   future: {
     compatibilityVersion: 4,
   },

@@ -1,8 +1,17 @@
 export default defineEventHandler(async (event) => {
+  const { userId } = await requireAuth(event)
   const supabase = createSupabaseAdmin()
+  const groupId = getRouterParam(event, 'id')
   const catId = getRouterParam(event, 'catId')
 
+  if (!groupId) throw createError({ statusCode: 400, message: 'Group ID required' })
   if (!catId) throw createError({ statusCode: 400, message: 'Category ID required' })
+
+  const member = await requireGroupMember(groupId, userId)
+
+  if (member.role !== 'admin') {
+    throw createError({ statusCode: 403, message: 'Only admins can modify categories' })
+  }
 
   // Prevent modifying the default category
   const { data: cat } = await supabase

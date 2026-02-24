@@ -1,6 +1,7 @@
 import type { Member, AddMemberPayload } from '#types/app'
 
 export function useMembers(groupId: MaybeRef<string>) {
+  const apiFetch = useApi()
   const members = ref<Member[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -9,7 +10,7 @@ export function useMembers(groupId: MaybeRef<string>) {
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch<Member[]>(`/api/groups/${toValue(groupId)}/members`)
+      const data = await apiFetch<Member[]>(`/api/groups/${toValue(groupId)}/members`)
       members.value = data
     }
     catch (e) {
@@ -21,7 +22,7 @@ export function useMembers(groupId: MaybeRef<string>) {
   }
 
   async function addMember(payload: AddMemberPayload) {
-    const data = await $fetch<Member>(`/api/groups/${toValue(groupId)}/members`, {
+    const data = await apiFetch<Member>(`/api/groups/${toValue(groupId)}/members`, {
       method: 'POST',
       body: payload,
     })
@@ -29,8 +30,8 @@ export function useMembers(groupId: MaybeRef<string>) {
     return data
   }
 
-  async function updateMember(memberId: string, payload: { name: string; color?: string }) {
-    const data = await $fetch<Member>(`/api/groups/${toValue(groupId)}/members/${memberId}`, {
+  async function updateMember(memberId: string, payload: { name?: string; color?: string; role?: string }) {
+    const data = await apiFetch<Member>(`/api/groups/${toValue(groupId)}/members/${memberId}`, {
       method: 'PUT',
       body: payload,
     })
@@ -40,7 +41,7 @@ export function useMembers(groupId: MaybeRef<string>) {
   }
 
   async function removeMember(memberId: string) {
-    await $fetch(`/api/groups/${toValue(groupId)}/members/${memberId}`, { method: 'DELETE' })
+    await apiFetch(`/api/groups/${toValue(groupId)}/members/${memberId}`, { method: 'DELETE' })
     members.value = members.value.filter(m => m.id !== memberId)
   }
 

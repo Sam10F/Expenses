@@ -1,10 +1,13 @@
 import type { UpdateGroupPayload } from '#types/app'
 
 export default defineEventHandler(async (event) => {
+  const { userId } = await requireAuth(event)
   const supabase = createSupabaseAdmin()
   const id = getRouterParam(event, 'id')
 
   if (!id) throw createError({ statusCode: 400, message: 'Group ID required' })
+
+  const member = await requireGroupMember(id, userId)
 
   if (event.method === 'GET') {
     const { data, error } = await supabase
@@ -19,6 +22,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'PUT') {
+    if (member.role !== 'admin') {
+      throw createError({ statusCode: 403, message: 'Only admins can update group settings' })
+    }
+
     const body = await readBody<UpdateGroupPayload>(event)
 
     const { data, error } = await supabase
@@ -38,6 +45,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'DELETE') {
+    if (member.role !== 'admin') {
+      throw createError({ statusCode: 403, message: 'Only admins can delete groups' })
+    }
+
     const { error } = await supabase.from('groups').delete().eq('id', id)
     if (error) throw createError({ statusCode: 500, message: error.message })
     return { success: true }

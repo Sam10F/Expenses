@@ -20,6 +20,48 @@
     "home": "Expenses",
     "yourProfile": "Your profile"
   },
+  "auth": {
+    "login": "Sign in",
+    "signup": "Create account",
+    "username": "Username",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "rememberMe": "Remember me",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signOut": "Sign out",
+    "usernameRules": "3–20 characters, letters, numbers and underscores only",
+    "passwordRules": "Must contain uppercase, lowercase, number, and special character",
+    "passwordMismatch": "Passwords do not match",
+    "usernameTaken": "Username is already taken",
+    "invalidCredentials": "Invalid username or password",
+    "signupSuccess": "Account created! Please sign in."
+  },
+  "invitations": {
+    "title": "Invitations",
+    "empty": "No pending invitations",
+    "accept": "Accept",
+    "decline": "Decline",
+    "accepted": "You joined {group}!",
+    "declined": "Invitation declined.",
+    "send": "Invitation sent",
+    "sendButton": "Send",
+    "roleLabel": "Role",
+    "pending": "Pending invitations",
+    "userNotFound": "User not found",
+    "alreadyMember": "User is already a member",
+    "alreadyInvited": "User already has a pending invitation",
+    "invitedBy": "Invited by {name}",
+    "joinAs": "Join as"
+  },
+  "roles": {
+    "admin": "Admin",
+    "user": "Member",
+    "watcher": "Watcher",
+    "changeRole": "Change role",
+    "cannotDemoteDebts": "Cannot change to Watcher — member has outstanding balance",
+    "cannotDemoteSelf": "You cannot change your own role"
+  },
   "groups": {
     "title": "My Groups",
     "empty": {
@@ -36,11 +78,6 @@
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "What is this group for?",
       "colorLabel": "Accent color",
-      "membersLabel": "Members",
-      "membersHint": "Add at least one member",
-      "memberNamePlaceholder": "Member name",
-      "addMember": "Add member",
-      "memberRequired": "Add at least one member",
       "submit": "Create group"
     },
     "createSuccess": "Group created",
@@ -136,7 +173,8 @@
     },
     "remove": "Remove member",
     "removeConfirm": "Remove {name} from this group?",
-    "maxReached": "Maximum 10 members per group"
+    "maxReached": "Maximum 10 members per group",
+    "colorLabel": "Color for"
   },
   "settings": {
     "title": "Settings",
@@ -145,6 +183,11 @@
       "save": "Save changes",
       "saved": "Changes saved"
     },
+    "leaveGroup": "Leave group",
+    "leaveGroupDesc": "You will lose access to this group.",
+    "cannotLeaveDebts": "You have an outstanding balance. Settle up before leaving.",
+    "cannotLeaveOnlyAdmin": "You are the only admin. Assign another admin before leaving.",
+    "cannotLeaveLastMember": "You are the last member. Delete the group instead.",
     "dangerZone": {
       "title": "Danger zone",
       "deleteGroup": "Delete group",

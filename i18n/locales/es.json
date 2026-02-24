@@ -20,6 +20,48 @@
     "home": "Gastos",
     "yourProfile": "Tu perfil"
   },
+  "auth": {
+    "login": "Iniciar sesión",
+    "signup": "Crear cuenta",
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "rememberMe": "Recordarme",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "signOut": "Cerrar sesión",
+    "usernameRules": "3–20 caracteres, solo letras, números y guiones bajos",
+    "passwordRules": "Debe contener mayúscula, minúscula, número y carácter especial",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "usernameTaken": "Ese nombre de usuario ya está en uso",
+    "invalidCredentials": "Usuario o contraseña incorrectos",
+    "signupSuccess": "¡Cuenta creada! Por favor, inicia sesión."
+  },
+  "invitations": {
+    "title": "Invitaciones",
+    "empty": "No hay invitaciones pendientes",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "accepted": "¡Te has unido a {group}!",
+    "declined": "Invitación rechazada.",
+    "send": "Invitación enviada",
+    "sendButton": "Enviar",
+    "roleLabel": "Rol",
+    "pending": "Invitaciones pendientes",
+    "userNotFound": "Usuario no encontrado",
+    "alreadyMember": "El usuario ya es miembro",
+    "alreadyInvited": "El usuario ya tiene una invitación pendiente",
+    "invitedBy": "Invitado por {name}",
+    "joinAs": "Unirse como"
+  },
+  "roles": {
+    "admin": "Administrador",
+    "user": "Miembro",
+    "watcher": "Observador",
+    "changeRole": "Cambiar rol",
+    "cannotDemoteDebts": "No se puede cambiar a Observador — el miembro tiene saldo pendiente",
+    "cannotDemoteSelf": "No puedes cambiar tu propio rol"
+  },
   "groups": {
     "title": "Mis grupos",
     "empty": {
@@ -36,11 +78,6 @@
       "descriptionLabel": "Descripción",
       "descriptionPlaceholder": "¿Para qué es este grupo?",
       "colorLabel": "Color de acento",
-      "membersLabel": "Miembros",
-      "membersHint": "Añade al menos un miembro",
-      "memberNamePlaceholder": "Nombre del miembro",
-      "addMember": "Añadir miembro",
-      "memberRequired": "Añade al menos un miembro",
       "submit": "Crear grupo"
     },
     "createSuccess": "Grupo creado",
@@ -120,7 +157,7 @@
       "education": "Educación",
       "utilities": "Servicios",
       "drinks": "Bebidas",
-      "work": "Trabajo",
+      "work": "Work",
       "sports": "Deportes",
       "gifts": "Regalos",
       "tech": "Tecnología"
@@ -136,7 +173,8 @@
     },
     "remove": "Eliminar miembro",
     "removeConfirm": "¿Eliminar a {name} de este grupo?",
-    "maxReached": "Máximo 10 miembros por grupo"
+    "maxReached": "Máximo 10 miembros por grupo",
+    "colorLabel": "Color de"
   },
   "settings": {
     "title": "Ajustes",
@@ -145,6 +183,11 @@
       "save": "Guardar cambios",
       "saved": "Cambios guardados"
     },
+    "leaveGroup": "Salir del grupo",
+    "leaveGroupDesc": "Perderás acceso a este grupo.",
+    "cannotLeaveDebts": "Tienes un saldo pendiente. Liquídalo antes de salir.",
+    "cannotLeaveOnlyAdmin": "Eres el único administrador. Asigna otro administrador antes de salir.",
+    "cannotLeaveLastMember": "Eres el último miembro. Elimina el grupo en su lugar.",
     "dangerZone": {
       "title": "Zona de peligro",
       "deleteGroup": "Eliminar grupo",

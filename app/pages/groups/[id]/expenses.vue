@@ -110,11 +110,13 @@ const showNewGroup   = ref(false)
 const showAddExpense = ref(false)
 const editingExpense = ref<ExpenseWithDetails | null>(null)
 
+const apiFetch = useApi()
+
 // Load members and categories
 const { data } = await useAsyncData(`expenses-page-${groupId.value}`, () =>
   Promise.all([
-    $fetch<Member[]>(`/api/groups/${groupId.value}/members`),
-    $fetch<Category[]>(`/api/groups/${groupId.value}/categories`),
+    apiFetch<Member[]>(`/api/groups/${groupId.value}/members`),
+    apiFetch<Category[]>(`/api/groups/${groupId.value}/categories`),
   ]),
 )
 

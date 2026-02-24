@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { GroupWithStats } from '#types/app'
+import type { GroupWithStats, CreateGroupPayload, UpdateGroupPayload } from '#types/app'
 
 export const useGroupsStore = defineStore('groups', () => {
   const groups = ref<GroupWithStats[]>([])
@@ -25,10 +25,11 @@ export const useGroupsStore = defineStore('groups', () => {
   )
 
   async function fetchGroups() {
+    const apiFetch = useApi()
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch<GroupWithStats[]>('/api/groups')
+      const data = await apiFetch<GroupWithStats[]>('/api/groups')
       groups.value = data
 
       // Auto-select first group if active group is gone or not set
@@ -48,19 +49,22 @@ export const useGroupsStore = defineStore('groups', () => {
     activeGroupId.value = id
   }
 
-  async function createGroup(payload: Parameters<typeof $fetch>[1] extends { body: infer B } ? B : never) {
-    const data = await $fetch('/api/groups', { method: 'POST', body: payload })
+  async function createGroup(payload: CreateGroupPayload) {
+    const apiFetch = useApi()
+    const data = await apiFetch('/api/groups', { method: 'POST', body: payload })
     await fetchGroups()
     return data
   }
 
-  async function updateGroup(id: string, payload: Record<string, unknown>) {
-    await $fetch(`/api/groups/${id}`, { method: 'PUT', body: payload })
+  async function updateGroup(id: string, payload: UpdateGroupPayload) {
+    const apiFetch = useApi()
+    await apiFetch(`/api/groups/${id}`, { method: 'PUT', body: payload })
     await fetchGroups()
   }
 
   async function deleteGroup(id: string) {
-    await $fetch(`/api/groups/${id}`, { method: 'DELETE' })
+    const apiFetch = useApi()
+    await apiFetch(`/api/groups/${id}`, { method: 'DELETE' })
     if (activeGroupId.value === id) {
       activeGroupId.value = null
     }

@@ -149,10 +149,56 @@
       "save": "Save changes",
       "saved": "Changes saved"
     },
+    "leaveGroup": "Leave group",
+    "leaveGroupDesc": "You will lose access to this group.",
     "dangerZone": {
       "title": "Danger zone",
       "deleteGroup": "Delete group",
       "deleteDescription": "Permanently delete this group and all its expenses."
     }
+  },
+  "auth": {
+    "login": "Sign in",
+    "signup": "Create account",
+    "username": "Username",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "rememberMe": "Remember me",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signOut": "Sign out",
+    "usernameRules": "3–20 characters, letters, numbers and underscores only",
+    "passwordRules": "Must contain uppercase, lowercase, number, and special character",
+    "passwordMismatch": "Passwords do not match",
+    "usernameTaken": "Username is already taken",
+    "invalidCredentials": "Invalid username or password",
+    "signupSuccess": "Account created! Please sign in.",
+    "usernameRequired": "Username is required",
+    "passwordRequired": "Password is required",
+    "usernameInvalid": "3–20 characters, letters, numbers and underscores only",
+    "passwordWeak": "Password must contain uppercase, lowercase, number, and special character",
+    "passwordHasLower": "Lowercase letter",
+    "passwordHasUpper": "Uppercase letter",
+    "passwordHasNumber": "Number",
+    "passwordHasSpecial": "Special character (@$!%*?&#^)",
+    "passwordHasLength": "At least 8 characters"
+  },
+  "invitations": {
+    "title": "Invitations",
+    "empty": "No pending invitations",
+    "accept": "Accept",
+    "decline": "Decline",
+    "invitedBy": "Invited by {name}",
+    "joinAs": "Join as",
+    "roleLabel": "Role",
+    "sendButton": "Send",
+    "pending": "Pending invitations",
+    "send": "Invitation sent"
+  },
+  "roles": {
+    "admin": "Admin",
+    "user": "Member",
+    "watcher": "Watcher",
+    "changeRole": "Change role"
   }
 }

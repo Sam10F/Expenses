@@ -2,10 +2,13 @@ import { calculateNetBalances, calculateSettlements } from '../../../../app/util
 import type { ExpenseWithDetails } from '#types/app'
 
 export default defineEventHandler(async (event) => {
+  const { userId } = await requireAuth(event)
   const supabase = createSupabaseAdmin()
   const groupId = getRouterParam(event, 'id')
 
   if (!groupId) throw createError({ statusCode: 400, message: 'Group ID required' })
+
+  await requireGroupMember(groupId, userId)
 
   // Fetch all members and expenses with splits
   const [membersResult, expensesResult] = await Promise.all([

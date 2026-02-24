@@ -54,7 +54,7 @@
       </div>
 
       <!-- Color -->
-      <div class="form-field" style="margin-bottom:16px;" role="group" :aria-labelledby="colorLabelId">
+      <div class="form-field" role="group" :aria-labelledby="colorLabelId">
         <span :id="colorLabelId" class="form-label">{{ t('groups.new.colorLabel') }}</span>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
           <button
@@ -67,87 +67,6 @@
             :aria-pressed="form.color === color"
             @click="form.color = color"
           ></button>
-        </div>
-      </div>
-
-      <!-- Members -->
-      <div class="form-field" role="group" :aria-labelledby="membersLabelId">
-        <span :id="membersLabelId" class="form-label">{{ t('groups.new.membersLabel') }}</span>
-        <p class="form-hint">{{ t('groups.new.membersHint') }}</p>
-
-        <ul
-          v-if="form.members.length"
-          role="list"
-          style="list-style:none;padding:0;margin:8px 0;display:flex;flex-direction:column;gap:8px;"
-        >
-          <li
-            v-for="(member, i) in form.members"
-            :key="i"
-            style="display:flex;flex-direction:column;gap:4px;"
-          >
-            <div style="display:flex;align-items:center;gap:8px;">
-              <AppAvatar :name="member.name" :color="member.color" size="sm" aria-hidden="true" />
-              <span style="flex:1;font-size:14px;">{{ member.name }}</span>
-              <button
-                type="button"
-                class="btn btn-ghost btn-icon"
-                :aria-label="t('members.remove') + ' ' + member.name"
-                @click="removeMember(i)"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-            <div
-              style="display:flex;gap:4px;padding-left:36px;"
-              role="group"
-              :aria-label="t('members.colorLabel') + ' ' + member.name"
-            >
-              <button
-                v-for="c in MEMBER_COLORS"
-                :key="c"
-                type="button"
-                class="member-color-swatch"
-                :class="[`color-${c}`, { selected: member.color === c }]"
-                :aria-label="c"
-                :aria-pressed="member.color === c"
-                @click="member.color = c"
-              ></button>
-            </div>
-          </li>
-        </ul>
-
-        <span
-          v-if="errors.members"
-          class="form-error"
-          role="alert"
-          style="margin-bottom:8px;"
-        >
-          {{ errors.members }}
-        </span>
-
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <div style="flex:1;">
-            <label :for="memberInputId" class="sr-only">{{ t('groups.new.membersLabel') }}</label>
-            <input
-              :id="memberInputId"
-              v-model="newMemberName"
-              type="text"
-              class="form-input"
-              :placeholder="t('groups.new.memberNamePlaceholder')"
-              autocomplete="off"
-              @keydown.enter.prevent="addMember"
-            />
-          </div>
-          <button
-            type="button"
-            class="btn btn-secondary btn-md"
-            :disabled="!newMemberName.trim()"
-            @click="addMember"
-          >
-            {{ t('common.add') }}
-          </button>
         </div>
       </div>
     </form>
@@ -170,7 +89,7 @@
 
 <script setup lang="ts">
 import { useId } from 'vue'
-import { GROUP_COLORS, MEMBER_COLORS } from '#types/app'
+import { GROUP_COLORS } from '#types/app'
 
 defineProps<{
   open: boolean
@@ -182,52 +101,28 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const colorLabelId   = useId()
-const membersLabelId = useId()
-const memberInputId  = useId()
+const colorLabelId = useId()
+const apiFetch = useApi()
 
 const form = reactive({
   name:        '',
   description: '',
   color:       'indigo' as string,
-  members:     [] as { name: string; color: string }[],
 })
 
 const errors = reactive({
-  name:    '',
-  members: '',
+  name: '',
 })
 
-const newMemberName = ref('')
 const saving = ref(false)
 
-function addMember() {
-  const name = newMemberName.value.trim()
-  if (!name) return
-  if (form.members.length >= 10) return
-  const color = MEMBER_COLORS[form.members.length % MEMBER_COLORS.length] as string
-  form.members.push({ name, color })
-  newMemberName.value = ''
-}
-
-function removeMember(index: number) {
-  form.members.splice(index, 1)
-}
-
 function validate(): boolean {
-  errors.name    = ''
-  errors.members = ''
-
-  let valid = true
+  errors.name = ''
   if (!form.name.trim()) {
     errors.name = t('groups.new.nameRequired')
-    valid = false
+    return false
   }
-  if (!form.members.length) {
-    errors.members = t('groups.new.memberRequired')
-    valid = false
-  }
-  return valid
+  return true
 }
 
 async function handleSubmit() {
@@ -235,19 +130,17 @@ async function handleSubmit() {
 
   saving.value = true
   try {
-    const data = await $fetch<{ id: string }>('/api/groups', {
+    const data = await apiFetch<{ id: string }>('/api/groups', {
       method: 'POST',
       body: {
         name:        form.name.trim(),
         description: form.description.trim(),
         color:       form.color,
-        members:     form.members,
       },
     })
     emit('created', data.id)
     emit('close')
-    // Reset form
-    Object.assign(form, { name: '', description: '', color: 'indigo', members: [] })
+    Object.assign(form, { name: '', description: '', color: 'indigo' })
   }
   finally {
     saving.value = false

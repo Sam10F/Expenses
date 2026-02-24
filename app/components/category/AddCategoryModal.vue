@@ -110,6 +110,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const colorLabelId = useId()
 const iconLabelId  = useId()
+const apiFetch = useApi()
 
 const form = reactive({
   name:  '',
@@ -137,7 +138,7 @@ async function handleSubmit() {
   if (!validate()) return
   saving.value = true
   try {
-    const data = await $fetch<Category>(`/api/groups/${props.groupId}/categories`, {
+    const data = await apiFetch<Category>(`/api/groups/${props.groupId}/categories`, {
       method: 'POST',
       body: { name: form.name.trim(), color: form.color, icon: form.icon },
     })

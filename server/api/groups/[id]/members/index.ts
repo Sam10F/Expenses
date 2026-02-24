@@ -1,10 +1,13 @@
 import type { AddMemberPayload } from '#types/app'
 
 export default defineEventHandler(async (event) => {
+  const { userId } = await requireAuth(event)
   const supabase = createSupabaseAdmin()
   const groupId = getRouterParam(event, 'id')
 
   if (!groupId) throw createError({ statusCode: 400, message: 'Group ID required' })
+
+  const member = await requireGroupMember(groupId, userId)
 
   if (event.method === 'GET') {
     const { data, error } = await supabase
@@ -19,6 +22,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'POST') {
+    if (member.role !== 'admin') {
+      throw createError({ statusCode: 403, message: 'Only admins can add members' })
+    }
+
     const body = await readBody<AddMemberPayload>(event)
 
     if (!body.name?.trim()) {

@@ -76,11 +76,11 @@
         </div>
       </div>
 
-      <!-- Paid by -->
+      <!-- Paid by (watchers excluded) -->
       <div class="form-field" style="margin-bottom:14px;">
         <label for="exp-paidby" class="form-label">{{ t('expenses.add.paidByLabel') }}</label>
         <select id="exp-paidby" v-model="form.paid_by" class="form-input">
-          <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
+          <option v-for="m in nonWatcherMembers" :key="m.id" :value="m.id">{{ m.name }}</option>
         </select>
       </div>
 
@@ -115,12 +115,14 @@
             v-for="s in splitCalc.splits.value"
             :key="s.member.id"
             style="display:flex;align-items:center;gap:8px;"
+            :style="isWatcherMember(s.member) ? 'opacity:0.5;' : ''"
           >
-            <!-- Toggle -->
+            <!-- Toggle (disabled for watchers) -->
             <input
               :id="`split-${s.member.id}`"
               type="checkbox"
               :checked="s.is_included"
+              :disabled="isWatcherMember(s.member)"
               :aria-label="s.member.name"
               style="width:16px;height:16px;cursor:pointer;flex-shrink:0;"
               @change="splitCalc.toggleMember(s.member.id)"
@@ -199,6 +201,15 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const splitLabelId = useId()
+const apiFetch = useApi()
+
+const nonWatcherMembers = computed(() =>
+  props.members.filter(m => (m as { role?: string }).role !== 'watcher'),
+)
+
+function isWatcherMember(m: Member): boolean {
+  return (m as Member & { role?: string }).role === 'watcher'
+}
 
 const form = reactive({
   title:       '',
@@ -247,7 +258,7 @@ watch([() => props.expense, () => props.prefill], ([exp, pre]) => {
   }
   else {
     Object.assign(form, { title: '', amount: 0, date: todayISO() })
-    form.paid_by     = props.members[0]?.id ?? ''
+    form.paid_by     = nonWatcherMembers.value[0]?.id ?? ''
     form.category_id = props.categories.find(c => c.is_default)?.id ?? ''
     splitCalc.initSplits()
   }
@@ -289,13 +300,13 @@ async function handleSubmit() {
 
   try {
     if (props.expense) {
-      await $fetch(`/api/groups/${props.groupId}/expenses/${props.expense.id}`, {
+      await apiFetch(`/api/groups/${props.groupId}/expenses/${props.expense.id}`, {
         method: 'PUT',
         body,
       })
     }
     else {
-      await $fetch(`/api/groups/${props.groupId}/expenses`, {
+      await apiFetch(`/api/groups/${props.groupId}/expenses`, {
         method: 'POST',
         body,
       })

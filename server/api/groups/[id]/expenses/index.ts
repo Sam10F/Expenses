@@ -3,10 +3,13 @@ import type { CreateExpensePayload } from '#types/app'
 const PAGE_SIZE = 50
 
 export default defineEventHandler(async (event) => {
+  const { userId } = await requireAuth(event)
   const supabase = createSupabaseAdmin()
   const groupId = getRouterParam(event, 'id')
 
   if (!groupId) throw createError({ statusCode: 400, message: 'Group ID required' })
+
+  const member = await requireGroupMember(groupId, userId)
 
   if (event.method === 'GET') {
     const query = getQuery(event)
@@ -34,6 +37,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'POST') {
+    if (member.role === 'watcher') {
+      throw createError({ statusCode: 403, message: 'Watchers cannot create expenses' })
+    }
+
     const body = await readBody<CreateExpensePayload>(event)
 
     if (!body.title?.trim()) {
@@ -84,6 +91,7 @@ export default defineEventHandler(async (event) => {
         title:       body.title.trim(),
         amount:      body.amount,
         date:        body.date,
+        created_by:  userId,
       })
       .select()
       .single()

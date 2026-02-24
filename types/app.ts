@@ -3,11 +3,37 @@ import type { Database } from './supabase'
 // ============================================================
 // Raw DB row types
 // ============================================================
-export type Group    = Database['public']['Tables']['groups']['Row']
-export type Member   = Database['public']['Tables']['members']['Row']
-export type Category = Database['public']['Tables']['categories']['Row']
-export type Expense  = Database['public']['Tables']['expenses']['Row']
+export type Group      = Database['public']['Tables']['groups']['Row']
+export type Member     = Database['public']['Tables']['members']['Row']
+export type Category   = Database['public']['Tables']['categories']['Row']
+export type Expense    = Database['public']['Tables']['expenses']['Row']
 export type ExpenseSplit = Database['public']['Tables']['expense_splits']['Row']
+export type Profile    = Database['public']['Tables']['profiles']['Row']
+export type Invitation = Database['public']['Tables']['invitations']['Row']
+
+// ============================================================
+// Auth & role types
+// ============================================================
+
+export type UserRole = 'admin' | 'user' | 'watcher'
+
+export interface AuthUser {
+  id:       string
+  username: string
+}
+
+/** Invitation enriched with group details and inviter */
+export interface InvitationWithDetails extends Invitation {
+  group?: {
+    id:          string
+    name:        string
+    description: string | null
+    color:       string
+  } | null
+  inviter?: { username: string } | null
+  invitee?: { username: string } | null
+  memberCount:   number
+}
 
 // ============================================================
 // Insert types
@@ -76,7 +102,26 @@ export interface CreateGroupPayload {
   name:        string
   description: string
   color:       string
-  members:     Array<{ name: string; color: string }>
+}
+
+export interface SignUpPayload {
+  username: string
+  password: string
+}
+
+export interface SignInPayload {
+  username: string
+  password: string
+  remember?: boolean
+}
+
+export interface SendInvitationPayload {
+  username: string
+  role:     'user' | 'watcher'
+}
+
+export interface UpdateMemberRolePayload {
+  role: UserRole
 }
 
 export interface UpdateGroupPayload {
