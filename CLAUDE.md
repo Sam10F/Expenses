@@ -17,6 +17,7 @@ Shared expense tracker (like Tricount / SettleUp). Groups of 1–10 people track
 | Lint | ESLint + @nuxt/eslint |
 | i18n | @nuxtjs/i18n — EN + ES |
 | Package manager | npm |
+| PWA | @vite-pwa/nuxt |
 
 ---
 
@@ -48,19 +49,34 @@ Shared expense tracker (like Tricount / SettleUp). Groups of 1–10 people track
 │   ├── plugins/
 │   ├── stores/                   # Pinia stores
 │   └── utils/                    # Pure helper functions
+│       ├── memberColor.ts        # Member color hex lookup + name-hash fallback
+│       └── categoryIcons.ts      # Category icon SVG paths + color hex map
 ├── server/
 │   └── api/                      # Nuxt server routes (thin wrappers over Supabase)
 ├── supabase/
 │   └── migrations/               # All DDL lives here, versioned
+├── public/
+│   ├── icons/                    # PWA icons (192×192, 512×512)
+│   ├── apple-touch-icon.png
+│   ├── favicon.png
+│   └── icon.svg                  # Source SVG for icon generation
 ├── tests/
-│   └── e2e/                      # Playwright specs
-│       ├── groups.spec.ts
-│       ├── expenses.spec.ts
-│       ├── members.spec.ts
-│       └── balance.spec.ts
+│   ├── e2e/                      # Playwright specs
+│   │   ├── groups.spec.ts
+│   │   ├── expenses.spec.ts
+│   │   ├── members.spec.ts
+│   │   ├── balance.spec.ts
+│   │   ├── categories.spec.ts
+│   │   └── settings.spec.ts
+│   ├── helpers/
+│   │   └── supabase.ts           # Test data helpers (createTestGroup, etc.)
+│   └── global-setup.ts           # Stale data cleanup before test run
 ├── locales/
 │   ├── en.json
 │   └── es.json
+├── types/
+│   ├── app.ts                    # Domain types, payload types, color/icon constants
+│   └── supabase.ts               # Auto-generated from Supabase schema
 ├── nuxt.config.ts
 ├── tailwind.config.ts
 ├── playwright.config.ts
@@ -100,23 +116,47 @@ screens: {
   ```bash
   npx supabase gen types typescript --local > types/supabase.ts
   ```
-- Environment variables required (`.env`):
-  ```
-  SUPABASE_URL=
-  SUPABASE_ANON_KEY=
-  SUPABASE_SERVICE_ROLE_KEY=   # server-side only
-  ```
+
+### Environments
+
+Two Supabase projects exist — one per environment:
+
+| Environment | Project | Used when |
+|---|---|---|
+| Development | `Expenses - DEV` (`cjovafrwkbtllanqbapy`) | `npm run dev`, `npm run test` |
+| Production | `Expenses` (`xkozeysyfamzeihtyilo`) | `npm run build` / deploy |
+
+Nuxt/Vite loads `.env` in dev and `.env.production` in production builds. Both files are gitignored.
+
+```
+# .env  (development)
+SUPABASE_URL=https://cjovafrwkbtllanqbapy.supabase.co
+SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...   # server-side only
+
+# .env.production  (production)
+SUPABASE_URL=https://xkozeysyfamzeihtyilo.supabase.co
+SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...   # server-side only
+```
 
 ### Core Data Model (reference)
 
 ```
 groups         id, name, description, color, created_at
-members        id, group_id, name, avatar_url, created_at
+members        id, group_id, name, color, avatar_url, created_at
 categories     id, group_id, name, color, icon, is_default (bool), created_at
 expenses       id, group_id, paid_by (member_id), category_id (FK → categories),
                title, amount, currency='EUR', date, created_at, updated_at
 expense_splits id, expense_id, member_id, amount, is_included
 ```
+
+### Migrations
+
+| File | Description |
+|---|---|
+| `001_initial_schema.sql` | Groups, members, categories, expenses, expense_splits, RLS policies |
+| `002_member_color.sql` | `ALTER TABLE members ADD COLUMN color TEXT NOT NULL DEFAULT 'indigo'` |
 
 ---
 
@@ -230,6 +270,27 @@ Accessibility is a first-class requirement.
 
 ---
 
+## PWA
+
+The app is a Progressive Web App via `@vite-pwa/nuxt`.
+
+- Manifest: auto-generated at `/manifest.webmanifest`, also linked manually in `app/app.vue` via `useHead` for dev mode compatibility.
+- Service worker: Workbox `autoUpdate` strategy; network-first for Supabase API calls, precaches all static assets.
+- Icons: `public/icons/pwa-192x192.png`, `public/icons/pwa-512x512.png`, `public/apple-touch-icon.png`, `public/favicon.png`.
+- Source SVG: `public/icon.svg` — regenerate PNGs from this if the icon changes.
+- Theme colour: `#6366f1` (primary indigo).
+- `devOptions.enabled: true` so the manifest is injected during `npm run dev`.
+
+To regenerate icons from the SVG on macOS:
+```bash
+qlmanage -t -s 512 -o /tmp public/icon.svg
+sips -z 512 512 /tmp/icon.svg.png -o public/icons/pwa-512x512.png
+sips -z 192 192 /tmp/icon.svg.png -o public/icons/pwa-192x192.png
+sips -z 180 180 /tmp/icon.svg.png -o public/apple-touch-icon.png
+```
+
+---
+
 ## State Management
 
 - Use **Pinia** for global state (groups, active group, members).
@@ -278,6 +339,9 @@ npm run test:ui       # playwright test --ui
 npm run test:a11y     # playwright test --grep @a11y
 ```
 
+> **Node.js requirement:** `npm run test` and `npm run typecheck` require Node ≥ 21.2.0.
+> Use `nvm use 22` before running those commands.
+
 ---
 
 ## Git
@@ -322,9 +386,15 @@ An agent must verify every item below before considering any implementation comp
 - Group balance overview must be **immediately visible and understandable**.
 - Show each member's net balance (positive = owed money, negative = owes money).
 - Show suggested settlements to minimise the number of transactions.
+- Up to 5 settlements are shown by default; a "Show more" button reveals the rest.
+- Clicking a settlement row opens the Add Expense modal pre-filled with the settlement amount and members, so it can be recorded as an expense.
 
 ### Members
-- Each member has a name and optional profile picture.
+- Each member has a name, a **color**, and an optional profile picture.
+- **Member color** is chosen from a palette of 7: indigo, amber, emerald, rose, sky, violet, orange. Defaults to indigo.
+- Color is set when adding a member during group creation, and can be changed at any time in group settings. Changes are saved immediately (no separate save button).
+- The member's color is used as their avatar background throughout the app (balance cards, expense rows, settlement rows, recent expenses on the dashboard).
+- Color is derived from `app/utils/memberColor.ts`. Always pass `:color="member.color"` to `<AppAvatar>` — never rely on the name-hash fallback for persisted members.
 - Members can edit their own name and profile picture.
 
 ### Categories
@@ -358,6 +428,19 @@ An agent must verify every item below before considering any implementation comp
 
 - Base URL: `http://localhost:3000`.
 - Tests run against a dev server started automatically (`webServer` in `playwright.config.ts`).
-- Each spec file is responsible for its own test data setup/teardown via Supabase admin client.
+- `playwright.config.ts` loads `.env` via `dotenv` so Supabase credentials are available in `global-setup.ts` and test helpers.
+- Each spec file is responsible for its own test data setup/teardown via Supabase admin client (`tests/helpers/supabase.ts`).
+- `global-setup.ts` runs `cleanupStaleTestGroups()` before every test run to remove leftover data from crashed runs.
 - Tag a11y tests with `@a11y` in the test title to allow running them in isolation.
 - Screenshots on failure are saved to `tests/screenshots/`.
+
+### Test helper functions (`tests/helpers/supabase.ts`)
+
+| Function | Purpose |
+|---|---|
+| `createTestGroup(name, members[])` | Creates group + default General category + members. Returns `{ groupId, memberIds, defaultCategoryId }`. |
+| `deleteTestGroup(groupId)` | Deletes group and all cascaded data. |
+| `cleanupStaleTestGroups()` | Bulk-deletes groups matching known test name patterns. |
+| `createTestExpense(groupId, paidById, categoryId, memberIds[], options)` | Creates an expense with equal splits. |
+| `createTestExpensesBulk(groupId, paidById, categoryId, memberIds[], count)` | Batch-inserts N expenses (for pagination tests). |
+| `createTestCategory(groupId, options)` | Creates a custom (non-default) category. Returns category ID. |

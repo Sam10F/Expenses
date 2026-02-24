@@ -10,6 +10,7 @@
     >
       <AppAvatar
         :name="expense.paidByMember?.name ?? '?'"
+        :color="expense.paidByMember?.color"
         size="sm"
         :aria-hidden="true"
       />

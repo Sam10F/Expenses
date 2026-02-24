@@ -5,7 +5,7 @@
     style="border-left-width:4px;"
   >
     <div class="card-body" style="padding:16px;display:flex;align-items:center;gap:12px;">
-      <AppAvatar :name="member.name" size="md" />
+      <AppAvatar :name="member.name" :color="member.color" size="md" />
 
       <div style="flex:1;min-width:0;">
         <div style="font-weight:500;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">

@@ -91,13 +91,13 @@
                 :aria-label="`${t('balance.settlements.record')}: ${s.from.name} → ${s.to.name} ${formatCurrency(s.amount)}`"
                 @click="openSettlementModal(s)"
               >
-                <AppAvatar :name="s.from.name" size="sm" :aria-hidden="true" />
+                <AppAvatar :name="s.from.name" :color="s.from.color" size="sm" :aria-hidden="true" />
                 <span>{{ s.from.name }}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                 </svg>
                 <span>{{ s.to.name }}</span>
-                <AppAvatar :name="s.to.name" size="sm" :aria-hidden="true" />
+                <AppAvatar :name="s.to.name" :color="s.to.color" size="sm" :aria-hidden="true" />
                 <span style="color:var(--color-text-secondary);">{{ t('balance.settlements.pays') }}</span>
                 <strong>{{ formatCurrency(s.amount) }}</strong>
                 <span class="settlement-record-label">{{ t('balance.settlements.record') }}</span>
@@ -135,7 +135,7 @@
             :key="exp.id"
             style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--color-border);"
           >
-            <AppAvatar :name="exp.paidByMember.name" size="sm" :aria-hidden="true" />
+            <AppAvatar :name="exp.paidByMember.name" :color="exp.paidByMember.color" size="sm" :aria-hidden="true" />
             <div style="flex:1;min-width:0;">
               <div style="font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                 {{ exp.title }}
