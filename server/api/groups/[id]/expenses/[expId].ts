@@ -1,11 +1,15 @@
 import type { UpdateExpensePayload } from '#types/app'
 
 export default defineEventHandler(async (event) => {
+  const { userId } = await requireAuth(event)
   const supabase = createSupabaseAdmin()
   const expId = getRouterParam(event, 'expId')
   const groupId = getRouterParam(event, 'id')
 
   if (!expId) throw createError({ statusCode: 400, message: 'Expense ID required' })
+  if (!groupId) throw createError({ statusCode: 400, message: 'Group ID required' })
+
+  const member = await requireGroupMember(groupId, userId)
 
   if (event.method === 'GET') {
     const { data, error } = await supabase
@@ -28,6 +32,25 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'PUT') {
+    // Fetch expense to check ownership
+    const { data: expCheck } = await supabase
+      .from('expenses')
+      .select('group_id, created_by')
+      .eq('id', expId)
+      .single()
+
+    if (expCheck?.group_id !== groupId) {
+      throw createError({ statusCode: 403, message: 'Forbidden' })
+    }
+
+    if (member.role === 'watcher') {
+      throw createError({ statusCode: 403, message: 'Watchers cannot edit expenses' })
+    }
+
+    if (member.role === 'user' && expCheck.created_by !== userId) {
+      throw createError({ statusCode: 403, message: 'You can only edit expenses you created' })
+    }
+
     const body = await readBody<UpdateExpensePayload>(event)
 
     if (!body.title?.trim()) {
@@ -85,15 +108,22 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'DELETE') {
-    // Check expense belongs to the group
-    const { data: exp } = await supabase
+    const { data: expDel } = await supabase
       .from('expenses')
-      .select('group_id')
+      .select('group_id, created_by')
       .eq('id', expId)
       .single()
 
-    if (exp?.group_id !== groupId) {
+    if (expDel?.group_id !== groupId) {
       throw createError({ statusCode: 403, message: 'Forbidden' })
+    }
+
+    if (member.role === 'watcher') {
+      throw createError({ statusCode: 403, message: 'Watchers cannot delete expenses' })
+    }
+
+    if (member.role === 'user' && expDel.created_by !== userId) {
+      throw createError({ statusCode: 403, message: 'You can only delete expenses you created' })
     }
 
     const { error } = await supabase.from('expenses').delete().eq('id', expId)

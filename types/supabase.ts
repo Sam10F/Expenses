@@ -96,6 +96,7 @@ export type Database = {
           amount: number
           category_id: string | null
           created_at: string
+          created_by: string | null
           currency: string
           date: string
           group_id: string
@@ -108,6 +109,7 @@ export type Database = {
           amount: number
           category_id?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string
           date: string
           group_id: string
@@ -120,6 +122,7 @@ export type Database = {
           amount?: number
           category_id?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string
           date?: string
           group_id?: string
@@ -176,6 +179,41 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          invited_by: string
+          invited_user_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          invited_by: string
+          invited_user_id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          invited_by?: string
+          invited_user_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           avatar_url: string | null
@@ -184,6 +222,8 @@ export type Database = {
           group_id: string
           id: string
           name: string
+          role: string
+          user_id: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -192,6 +232,8 @@ export type Database = {
           group_id: string
           id?: string
           name: string
+          role?: string
+          user_id?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -200,6 +242,8 @@ export type Database = {
           group_id?: string
           id?: string
           name?: string
+          role?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -210,6 +254,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          username?: string
+        }
+        Relationships: []
       }
     }
     Views: {

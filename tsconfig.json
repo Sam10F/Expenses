@@ -12,7 +12,10 @@
       "@@": ["."],
       "@@/*": ["./*"],
       "#types": ["./types"],
-      "#types/*": ["./types/*"]
+      "#types/*": ["./types/*"],
+      "#imports": ["./.nuxt/imports"],
+      "#build": ["./.nuxt"],
+      "#build/*": ["./.nuxt/*"]
     }
   }
 }

@@ -149,10 +149,56 @@
       "save": "Guardar cambios",
       "saved": "Cambios guardados"
     },
+    "leaveGroup": "Abandonar grupo",
+    "leaveGroupDesc": "Perderás el acceso a este grupo.",
     "dangerZone": {
       "title": "Zona de peligro",
       "deleteGroup": "Eliminar grupo",
       "deleteDescription": "Elimina permanentemente este grupo y todos sus gastos."
     }
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "signup": "Crear cuenta",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "rememberMe": "Recordarme",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "signOut": "Cerrar sesión",
+    "usernameRules": "3–20 caracteres, solo letras, números y guiones bajos",
+    "passwordRules": "Debe contener mayúscula, minúscula, número y carácter especial",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "usernameTaken": "El nombre de usuario ya está en uso",
+    "invalidCredentials": "Usuario o contraseña incorrectos",
+    "signupSuccess": "¡Cuenta creada! Por favor, inicia sesión.",
+    "usernameRequired": "El usuario es obligatorio",
+    "passwordRequired": "La contraseña es obligatoria",
+    "usernameInvalid": "3–20 caracteres, solo letras, números y guiones bajos",
+    "passwordWeak": "La contraseña debe contener mayúscula, minúscula, número y carácter especial",
+    "passwordHasLower": "Letra minúscula",
+    "passwordHasUpper": "Letra mayúscula",
+    "passwordHasNumber": "Número",
+    "passwordHasSpecial": "Carácter especial (@$!%*?&#^)",
+    "passwordHasLength": "Mínimo 8 caracteres"
+  },
+  "invitations": {
+    "title": "Invitaciones",
+    "empty": "No hay invitaciones pendientes",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "invitedBy": "Invitado por {name}",
+    "joinAs": "Unirse como",
+    "roleLabel": "Rol",
+    "sendButton": "Enviar",
+    "pending": "Invitaciones pendientes",
+    "send": "Invitación enviada"
+  },
+  "roles": {
+    "admin": "Administrador",
+    "user": "Miembro",
+    "watcher": "Observador",
+    "changeRole": "Cambiar rol"
   }
 }

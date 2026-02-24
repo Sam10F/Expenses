@@ -234,16 +234,18 @@ const settlementPrefill  = ref<ExpensePrefill | null>(null)
 const SETTLEMENTS_VISIBLE = 5
 const RECENT_EXPENSES     = 5
 
+const apiFetch = useApi()
+
 // Load group data
 const { data, pending, error, refresh } = await useAsyncData(
   `group-dashboard-${groupId.value}`,
   async () => {
     const [group, members, categories, expensesRes, balanceData] = await Promise.all([
-      $fetch<{ id: string; name: string; description: string | null; color: string }>(`/api/groups/${groupId.value}`),
-      $fetch<{ id: string; name: string; avatar_url: string | null; group_id: string; created_at: string }[]>(`/api/groups/${groupId.value}/members`),
-      $fetch<Category[]>(`/api/groups/${groupId.value}/categories`),
-      $fetch<{ data: ExpenseWithDetails[]; total: number }>(`/api/groups/${groupId.value}/expenses`),
-      $fetch<{
+      apiFetch<{ id: string; name: string; description: string | null; color: string }>(`/api/groups/${groupId.value}`),
+      apiFetch<Member[]>(`/api/groups/${groupId.value}/members`),
+      apiFetch<Category[]>(`/api/groups/${groupId.value}/categories`),
+      apiFetch<{ data: ExpenseWithDetails[]; total: number }>(`/api/groups/${groupId.value}/expenses`),
+      apiFetch<{
         memberBalances: MemberWithBalance[]
         settlements:    { from: Member; to: Member; amount: number }[]
       }>(`/api/groups/${groupId.value}/balance`),

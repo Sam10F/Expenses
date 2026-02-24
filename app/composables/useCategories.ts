@@ -1,6 +1,7 @@
 import type { Category, CreateCategoryPayload } from '#types/app'
 
 export function useCategories(groupId: MaybeRef<string>) {
+  const apiFetch = useApi()
   const categories = ref<Category[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -9,7 +10,7 @@ export function useCategories(groupId: MaybeRef<string>) {
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch<Category[]>(`/api/groups/${toValue(groupId)}/categories`)
+      const data = await apiFetch<Category[]>(`/api/groups/${toValue(groupId)}/categories`)
       categories.value = data
     }
     catch (e) {
@@ -21,7 +22,7 @@ export function useCategories(groupId: MaybeRef<string>) {
   }
 
   async function addCategory(payload: CreateCategoryPayload) {
-    const data = await $fetch<Category>(`/api/groups/${toValue(groupId)}/categories`, {
+    const data = await apiFetch<Category>(`/api/groups/${toValue(groupId)}/categories`, {
       method: 'POST',
       body: payload,
     })
@@ -30,7 +31,7 @@ export function useCategories(groupId: MaybeRef<string>) {
   }
 
   async function updateCategory(catId: string, payload: Partial<CreateCategoryPayload>) {
-    const data = await $fetch<Category>(`/api/groups/${toValue(groupId)}/categories/${catId}`, {
+    const data = await apiFetch<Category>(`/api/groups/${toValue(groupId)}/categories/${catId}`, {
       method: 'PUT',
       body: payload,
     })
@@ -40,7 +41,7 @@ export function useCategories(groupId: MaybeRef<string>) {
   }
 
   async function deleteCategory(catId: string) {
-    await $fetch(`/api/groups/${toValue(groupId)}/categories/${catId}`, { method: 'DELETE' })
+    await apiFetch(`/api/groups/${toValue(groupId)}/categories/${catId}`, { method: 'DELETE' })
     categories.value = categories.value.filter(c => c.id !== catId)
   }
 

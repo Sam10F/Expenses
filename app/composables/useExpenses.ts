@@ -8,6 +8,7 @@ interface ExpensePage {
 }
 
 export function useExpenses(groupId: MaybeRef<string>) {
+  const apiFetch = useApi()
   const expenses = ref<ExpenseWithDetails[]>([])
   const total = ref(0)
   const currentPage = ref(0)
@@ -20,7 +21,7 @@ export function useExpenses(groupId: MaybeRef<string>) {
     loading.value = true
     error.value = null
     try {
-      const result = await $fetch<ExpensePage>(`/api/groups/${toValue(groupId)}/expenses`, {
+      const result = await apiFetch<ExpensePage>(`/api/groups/${toValue(groupId)}/expenses`, {
         query: { page },
       })
       if (page === 0) {
@@ -46,7 +47,7 @@ export function useExpenses(groupId: MaybeRef<string>) {
   }
 
   async function addExpense(payload: CreateExpensePayload) {
-    const data = await $fetch<ExpenseWithDetails>(`/api/groups/${toValue(groupId)}/expenses`, {
+    const data = await apiFetch<ExpenseWithDetails>(`/api/groups/${toValue(groupId)}/expenses`, {
       method: 'POST',
       body: payload,
     })
@@ -56,7 +57,7 @@ export function useExpenses(groupId: MaybeRef<string>) {
   }
 
   async function updateExpense(expId: string, payload: UpdateExpensePayload) {
-    await $fetch(`/api/groups/${toValue(groupId)}/expenses/${expId}`, {
+    await apiFetch(`/api/groups/${toValue(groupId)}/expenses/${expId}`, {
       method: 'PUT',
       body: payload,
     })
@@ -64,7 +65,7 @@ export function useExpenses(groupId: MaybeRef<string>) {
   }
 
   async function deleteExpense(expId: string) {
-    await $fetch(`/api/groups/${toValue(groupId)}/expenses/${expId}`, { method: 'DELETE' })
+    await apiFetch(`/api/groups/${toValue(groupId)}/expenses/${expId}`, { method: 'DELETE' })
     expenses.value = expenses.value.filter(e => e.id !== expId)
     total.value = Math.max(0, total.value - 1)
   }

@@ -6,6 +6,10 @@ export interface SplitEntry {
   is_included: boolean
 }
 
+function isWatcher(member: Member): boolean {
+  return (member as Member & { role?: string }).role === 'watcher'
+}
+
 export function useSplitCalculator(members: Ref<Member[]>, totalAmount: Ref<number>) {
   const splits = ref<SplitEntry[]>([])
   const isCustom = ref(false)
@@ -13,9 +17,15 @@ export function useSplitCalculator(members: Ref<Member[]>, totalAmount: Ref<numb
   /** Re-initialise splits from the current member list with equal distribution. */
   function initSplits(overrides?: SplitEntry[]) {
     if (overrides) {
-      splits.value = overrides.map(o => ({ ...o }))
+      splits.value = overrides.map(o => ({
+        ...o,
+        // Watchers are always excluded regardless of override
+        is_included: isWatcher(o.member) ? false : o.is_included,
+        amount:      isWatcher(o.member) ? 0 : o.amount,
+      }))
       const anyCustom = overrides.some(o => {
-        const includedCount = overrides.filter(s => s.is_included).length
+        if (isWatcher(o.member)) return false
+        const includedCount = overrides.filter(s => s.is_included && !isWatcher(s.member)).length
         const equal = includedCount > 0 ? Math.round((totalAmount.value / includedCount) * 100) / 100 : 0
         return o.is_included && Math.abs(o.amount - equal) > 0.01
       })
@@ -26,9 +36,9 @@ export function useSplitCalculator(members: Ref<Member[]>, totalAmount: Ref<numb
     }
   }
 
-  /** Recalculate equal split for all included members. */
+  /** Recalculate equal split for all included non-watcher members. */
   function recalculateEqual() {
-    const included = splits.value.filter(s => s.is_included)
+    const included = splits.value.filter(s => s.is_included && !isWatcher(s.member))
     const count = included.length
 
     if (count === 0) {
@@ -40,10 +50,13 @@ export function useSplitCalculator(members: Ref<Member[]>, totalAmount: Ref<numb
     let remainder = Math.round((totalAmount.value - baseAmount * count) * 100)
 
     splits.value = members.value.map((member) => {
-      const existing = splits.value.find(s => s.member.id === member.id)
-      const included = existing?.is_included ?? true
+      // Watchers always excluded
+      if (isWatcher(member)) return { member, amount: 0, is_included: false }
 
-      if (!included) {
+      const existing = splits.value.find(s => s.member.id === member.id)
+      const memberIncluded = existing?.is_included ?? true
+
+      if (!memberIncluded) {
         return { member, amount: 0, is_included: false }
       }
 
@@ -57,10 +70,11 @@ export function useSplitCalculator(members: Ref<Member[]>, totalAmount: Ref<numb
     })
   }
 
-  /** Toggle a member in/out of the split. */
+  /** Toggle a member in/out of the split. Watchers cannot be toggled. */
   function toggleMember(memberId: string) {
     const split = splits.value.find(s => s.member.id === memberId)
     if (!split) return
+    if (isWatcher(split.member)) return
 
     split.is_included = !split.is_included
 
@@ -77,7 +91,7 @@ export function useSplitCalculator(members: Ref<Member[]>, totalAmount: Ref<numb
   /** Set a custom amount for a member. */
   function setCustomAmount(memberId: string, amount: number) {
     const split = splits.value.find(s => s.member.id === memberId)
-    if (!split) return
+    if (!split || isWatcher(split.member)) return
     split.amount = amount
     isCustom.value = true
   }
@@ -105,8 +119,8 @@ export function useSplitCalculator(members: Ref<Member[]>, totalAmount: Ref<numb
     const existing = new Map(splits.value.map(s => [s.member.id, s]))
     splits.value = newMembers.map(member => ({
       member,
-      amount:      existing.get(member.id)?.amount ?? 0,
-      is_included: existing.get(member.id)?.is_included ?? true,
+      amount:      isWatcher(member) ? 0 : (existing.get(member.id)?.amount ?? 0),
+      is_included: isWatcher(member) ? false : (existing.get(member.id)?.is_included ?? true),
     }))
     if (!isCustom.value) recalculateEqual()
   }, { immediate: true })

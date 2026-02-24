@@ -1,10 +1,22 @@
 import type { CreateGroupPayload } from '#types/app'
 
 export default defineEventHandler(async (event) => {
+  const { userId, username } = await requireAuth(event)
   const supabase = createSupabaseAdmin()
 
   if (event.method === 'GET') {
-    // Fetch all groups with member and expense counts
+    // Return only groups where the current user is a member
+    const { data: memberRows, error: memberErr } = await supabase
+      .from('members')
+      .select('group_id')
+      .eq('user_id', userId)
+
+    if (memberErr) throw createError({ statusCode: 500, message: memberErr.message })
+
+    const groupIds = (memberRows ?? []).map(m => m.group_id).filter(Boolean) as string[]
+
+    if (groupIds.length === 0) return []
+
     const { data: groups, error } = await supabase
       .from('groups')
       .select(`
@@ -12,11 +24,12 @@ export default defineEventHandler(async (event) => {
         members(id),
         expenses(id, amount)
       `)
+      .in('id', groupIds)
       .order('created_at', { ascending: true })
 
     if (error) throw createError({ statusCode: 500, message: error.message })
 
-    const result = groups.map(g => ({
+    return groups.map(g => ({
       ...g,
       memberCount:  (g.members as { id: string }[]).length,
       expenseCount: (g.expenses as { id: string; amount: number }[]).length,
@@ -24,8 +37,6 @@ export default defineEventHandler(async (event) => {
       members:      undefined,
       expenses:     undefined,
     }))
-
-    return result
   }
 
   if (event.method === 'POST') {
@@ -33,12 +44,6 @@ export default defineEventHandler(async (event) => {
 
     if (!body.name?.trim()) {
       throw createError({ statusCode: 400, message: 'Group name is required' })
-    }
-    if (!body.members?.length) {
-      throw createError({ statusCode: 400, message: 'At least one member is required' })
-    }
-    if (body.members.length > 10) {
-      throw createError({ statusCode: 400, message: 'Maximum 10 members per group' })
     }
 
     // Create group
@@ -63,14 +68,14 @@ export default defineEventHandler(async (event) => {
       is_default: true,
     })
 
-    // Create members
-    if (body.members.length > 0) {
-      await supabase.from('members').insert(
-        body.members
-          .filter(m => m.name.trim())
-          .map(m => ({ group_id: group.id, name: m.name.trim(), color: m.color || 'indigo' })),
-      )
-    }
+    // Create the creator as the sole admin member
+    await supabase.from('members').insert({
+      group_id: group.id,
+      user_id:  userId,
+      name:     username,
+      color:    'indigo',
+      role:     'admin',
+    })
 
     return group
   }

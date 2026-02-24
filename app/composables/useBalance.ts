@@ -6,6 +6,7 @@ interface BalanceResponse {
 }
 
 export function useBalance(groupId: MaybeRef<string>) {
+  const apiFetch = useApi()
   const memberBalances = ref<MemberWithBalance[]>([])
   const settlements    = ref<Settlement[]>([])
   const loading = ref(false)
@@ -15,7 +16,7 @@ export function useBalance(groupId: MaybeRef<string>) {
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch<BalanceResponse>(`/api/groups/${toValue(groupId)}/balance`)
+      const data = await apiFetch<BalanceResponse>(`/api/groups/${toValue(groupId)}/balance`)
       memberBalances.value = data.memberBalances
       settlements.value    = data.settlements
     }
