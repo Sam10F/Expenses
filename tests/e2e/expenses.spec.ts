@@ -210,6 +210,43 @@ test.describe('Expenses', () => {
     }
   })
 
+  test('add expense modal resets to empty when reopened after submit', async ({ page }) => {
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // Open modal, fill in title and amount, then submit
+    await page.getByRole('button', { name: /add expense/i }).click()
+    await page.getByLabel(/title/i).fill('First Expense')
+    await page.getByLabel(/amount/i).fill('99')
+    await page.getByRole('button', { name: /save expense/i }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible()
+
+    // Open modal again via FAB — form must be blank
+    await page.getByRole('button', { name: /add expense/i }).click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByLabel(/title/i)).toHaveValue('')
+    const amountValue = await dialog.getByLabel(/amount/i).inputValue()
+    expect(amountValue === '' || amountValue === '0').toBeTruthy()
+  })
+
+  test('recent expense on dashboard shows category badge', async ({ page }) => {
+    await createTestExpense(
+      groupId,
+      adminMemberId,
+      defaultCategoryId,
+      [adminMemberId, bobId],
+      { title: 'Badge Test Meal', amount: 15 },
+    )
+
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // The recent expense row should display the category name (General)
+    await expect(page.getByText('Badge Test Meal')).toBeVisible()
+    await expect(page.getByText('General').first()).toBeVisible()
+  })
+
   test('load more button appears and loads additional expenses', async ({ page }) => {
     await createTestExpensesBulk(
       groupId,

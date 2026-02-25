@@ -41,6 +41,7 @@
               id="exp-amount"
               v-model.number="form.amount"
               type="number"
+              inputmode="decimal"
               min="0.01"
               step="0.01"
               class="form-input"
@@ -136,6 +137,7 @@
               <span class="form-prefix" aria-hidden="true">€</span>
               <input
                 type="number"
+                inputmode="decimal"
                 min="0"
                 step="0.01"
                 class="form-input"
@@ -229,8 +231,10 @@ const amountRef  = toRef(form, 'amount') as Ref<number>
 
 const splitCalc = useSplitCalculator(membersRef, amountRef)
 
-// Pre-fill when editing, from settlement prefill, or reset to defaults
-watch([() => props.expense, () => props.prefill], ([exp, pre]) => {
+// Pre-fill when editing, from settlement prefill, or reset to defaults.
+// Also watches props.open so reopening with no expense/prefill always resets the form.
+watch([() => props.open, () => props.expense, () => props.prefill], ([open, exp, pre]) => {
+  if (!open) return
   if (exp) {
     form.title       = exp.title
     form.amount      = exp.amount

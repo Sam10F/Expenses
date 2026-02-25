@@ -183,6 +183,11 @@
       "tech": "Tech"
     },
     "noSpending": "No spending yet",
+    "noExpensesInCategory": "No expenses in this category",
+    "viewMonthly": "Monthly",
+    "viewAll": "All",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
     "default": "Default",
     "edit": {
       "title": "Edit Category"

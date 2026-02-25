@@ -383,6 +383,16 @@ html {
   line-height: normal;
 }
 
+/* Prevent iOS Safari auto-zoom on input focus (triggered when font-size < 16px) */
+@media (max-width: 562px) {
+  .form-input {
+    font-size: 16px;
+  }
+  .form-prefix {
+    font-size: 16px;
+  }
+}
+
 /* ============================================================
    Balance amounts
    ============================================================ */

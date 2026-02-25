@@ -183,6 +183,11 @@
       "tech": "Tecnología"
     },
     "noSpending": "Sin gastos aún",
+    "noExpensesInCategory": "Sin gastos en esta categoría",
+    "viewMonthly": "Mensual",
+    "viewAll": "Todo",
+    "prevMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
     "default": "Predeterminada",
     "edit": {
       "title": "Editar categoría"

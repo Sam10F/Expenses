@@ -22,7 +22,7 @@ test.describe('Categories', () => {
   let defaultCategoryId: string
 
   test.beforeAll(async () => {
-    ;({ userId, username, token } = await createTestUser())
+    ; ({ userId, username, token } = await createTestUser())
   })
 
   test.afterAll(async () => {
@@ -175,7 +175,7 @@ test.describe('Categories', () => {
   test('non-admin member does not see "Add category" button on dashboard', async ({ page }) => {
     // Create a second user to act as a non-admin member
     const { userId: userId2, username: username2, token: token2 } = await createTestUser('nonadmin')
-    const memberId2 = await addTestMemberLinked(groupId, userId2, 'NonAdmin')
+    await addTestMemberLinked(groupId, userId2, 'NonAdmin')
 
     await loginTestUser(page, userId2, username2, token2)
     await page.goto(`/groups/${groupId}`)
@@ -185,5 +185,84 @@ test.describe('Categories', () => {
 
     // Cleanup
     await deleteTestUser(userId2)
+  })
+
+  test('By Category defaults to Monthly view and filters by current month', async ({ page }) => {
+    const today = new Date().toISOString().split('T')[0]!
+    // Last month date
+    const lastMonth = new Date()
+    lastMonth.setMonth(lastMonth.getMonth() - 1)
+    const lastMonthDate = lastMonth.toISOString().split('T')[0]!
+
+    // Current month expense €30
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Current Month Expense', amount: 30, date: today,
+    })
+    // Last month expense €20
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Last Month Expense', amount: 20, date: lastMonthDate,
+    })
+
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // Default view is Monthly — only current month's €30 should appear
+    await expect(page.getByRole('button', { name: /monthly/i, exact: true })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('.legend-amount').filter({ hasText: '€30.00' })).toBeVisible()
+    await expect(page.locator('.legend-amount').filter({ hasText: '€50.00' })).not.toBeVisible()
+
+    // Switch to All — €50 total should appear
+    await page.getByRole('button', { name: /^all$/i }).click()
+    await expect(page.locator('.legend-amount').filter({ hasText: '€50.00' })).toBeVisible()
+  })
+
+  test('month navigation updates By Category chart', async ({ page }) => {
+    const lastMonth = new Date()
+    lastMonth.setMonth(lastMonth.getMonth() - 1)
+    const lastMonthDate = lastMonth.toISOString().split('T')[0]!
+
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Previous Month Cost', amount: 25, date: lastMonthDate,
+    })
+
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // Currently in Monthly view for current month → no spending from last month
+    await expect(page.getByText(/no spending yet/i)).toBeVisible()
+
+    // Navigate to previous month
+    await page.getByRole('button', { name: /previous month/i }).click()
+
+    // Previous month's expense should appear
+    await expect(page.locator('.legend-amount').filter({ hasText: '€25.00' })).toBeVisible()
+  })
+
+  test('clicking a category row expands and collapses its expense list', async ({ page }) => {
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Expandable Expense', amount: 50,
+    })
+
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // Switch to All view to ensure the expense is visible in the chart
+    await page.getByRole('button', { name: /^all$/i }).click()
+
+    // Find and click the General legend item button
+    const generalBtn = page.locator('.legend-item-btn').filter({ hasText: 'General' })
+    await expect(generalBtn).toBeVisible()
+    await expect(generalBtn).toHaveAttribute('aria-expanded', 'false')
+
+    await generalBtn.click()
+    await expect(generalBtn).toHaveAttribute('aria-expanded', 'true')
+
+    // Expense title should appear in the dropdown
+    await expect(page.locator('.category-expense-title').filter({ hasText: 'Expandable Expense' })).toBeVisible()
+
+    // Click again to collapse
+    await generalBtn.click()
+    await expect(generalBtn).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.locator('.category-expense-title').filter({ hasText: 'Expandable Expense' })).not.toBeVisible()
   })
 })

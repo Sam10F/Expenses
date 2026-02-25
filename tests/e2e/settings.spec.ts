@@ -17,7 +17,7 @@ test.describe('Settings', () => {
   let groupId: string
 
   test.beforeAll(async () => {
-    ;({ userId, username, token } = await createTestUser())
+    ; ({ userId, username, token } = await createTestUser())
   })
 
   test.afterAll(async () => {
@@ -157,7 +157,7 @@ test.describe('Settings', () => {
   })
 
   test('admin can delete a non-default category from settings', async ({ page }) => {
-    const catId = await createTestCategory(groupId, { name: 'To Delete', color: 'rose', icon: 'food' })
+    await createTestCategory(groupId, { name: 'To Delete', color: 'rose', icon: 'food' })
     await page.goto(`/groups/${groupId}/settings`)
     await page.waitForLoadState('networkidle')
 
