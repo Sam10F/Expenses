@@ -33,12 +33,11 @@ jobs:
       - name: Repair Migration History
         run: supabase migration repair --status reverted 20260221191851 20260222163941
 
-      - name: Install PostgreSQL client
-        run: sudo apt-get install -y postgresql-client
-
       - name: Apply Migration 003
-        env:
-          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          psql "postgresql://postgres@db.${SUPABASE_PROJECT_ID}.supabase.co:5432/postgres?sslmode=require" \
-            -f supabase/migrations/003_auth_and_roles.sql
+          curl -X POST \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_ID}/database/query" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data-binary "{\"query\": $(jq -Rs . < supabase/migrations/003_auth_and_roles.sql)}" \
+            --fail-with-body
