@@ -96,8 +96,8 @@
         </div>
       </div>
 
-      <!-- Split -->
-      <div class="form-field" role="group" :aria-labelledby="splitLabelId">
+      <!-- Split (hidden when there is only one non-watcher member) -->
+      <div v-if="nonWatcherMembers.length > 1" class="form-field" role="group" :aria-labelledby="splitLabelId">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <span :id="splitLabelId" class="form-label">{{ t('expenses.add.splitLabel') }}</span>
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">

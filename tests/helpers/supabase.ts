@@ -219,6 +219,7 @@ export async function cleanupStaleTestGroups(): Promise<void> {
       'name.ilike.Settlement %',
       'name.ilike.Show More %',
       'name.ilike.Solo Balance %',
+      'name.ilike.Solo Expense%',
       'name.ilike.Invitation Test%',
       'name.ilike.User Settings Test%',
     ].join(','))

@@ -292,6 +292,7 @@ html {
 .modal-body {
   padding: 20px 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
 }
 
@@ -374,6 +375,13 @@ html {
 }
 
 .form-prefix-group .form-input { padding-left: 24px; }
+
+/* Normalize date input height across browsers (Safari inflates it) */
+.form-input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  line-height: normal;
+}
 
 /* ============================================================
    Balance amounts

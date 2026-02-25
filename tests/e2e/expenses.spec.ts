@@ -186,6 +186,30 @@ test.describe('Expenses', () => {
     await expect(page.getByText('Test Meal')).not.toBeVisible()
   })
 
+  test('split among section is hidden for single-member groups', async ({ page }) => {
+    const { groupId: soloGroupId } = await createTestGroup('Solo Expense Test', userId)
+
+    try {
+      await page.goto(`/groups/${soloGroupId}`)
+      await page.waitForLoadState('networkidle')
+
+      await page.getByRole('button', { name: /add expense/i }).click()
+
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible()
+      await expect(dialog.getByText(/split among/i)).not.toBeVisible()
+
+      // Expense can still be saved without split section
+      await dialog.getByLabel(/title/i).fill('Solo lunch')
+      await dialog.getByLabel(/amount/i).fill('12')
+      await dialog.getByRole('button', { name: /save expense/i }).click()
+      await expect(dialog).not.toBeVisible()
+    }
+    finally {
+      await deleteTestGroup(soloGroupId)
+    }
+  })
+
   test('load more button appears and loads additional expenses', async ({ page }) => {
     await createTestExpensesBulk(
       groupId,

@@ -44,6 +44,25 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'DELETE') {
+    // Reassign expenses in this category to the group's default (General) category
+    const { data: defaultCat, error: defaultCatError } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('group_id', groupId)
+      .eq('is_default', true)
+      .single()
+
+    if (defaultCatError || !defaultCat) {
+      throw createError({ statusCode: 500, message: 'Could not find default category' })
+    }
+
+    const { error: updateError } = await supabase
+      .from('expenses')
+      .update({ category_id: defaultCat.id })
+      .eq('category_id', catId)
+
+    if (updateError) throw createError({ statusCode: 500, message: updateError.message })
+
     const { error } = await supabase.from('categories').delete().eq('id', catId)
     if (error) throw createError({ statusCode: 500, message: error.message })
     return { success: true }
