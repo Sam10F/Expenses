@@ -89,6 +89,8 @@ export async function cleanupStaleTestUsers(): Promise<void> {
       'username.ilike.testuser_%',
       'username.ilike.adminuser_%',
       'username.ilike.watcheruser_%',
+      'username.ilike.settingsuser_%',
+      'username.ilike.nonadmin_%',
     ].join(','))
 
   if (!profiles?.length) return
@@ -166,6 +168,25 @@ export async function addTestMember(
 }
 
 /**
+ * Add a member linked to a real auth user (for role-based access tests).
+ */
+export async function addTestMemberLinked(
+  groupId: string,
+  userId:  string,
+  name:    string,
+  role:    'admin' | 'user' | 'watcher' = 'user',
+): Promise<string> {
+  const { data, error } = await adminClient
+    .from('members')
+    .insert({ group_id: groupId, user_id: userId, name, color: 'sky', role })
+    .select()
+    .single()
+
+  if (error || !data) throw new Error(`addTestMemberLinked: ${error?.message}`)
+  return data.id
+}
+
+/**
  * Delete a group and all its data (cascade handles the rest).
  */
 export async function deleteTestGroup(groupId: string) {
@@ -197,6 +218,9 @@ export async function cleanupStaleTestGroups(): Promise<void> {
       'name.ilike.Pagination Test%',
       'name.ilike.Settlement %',
       'name.ilike.Show More %',
+      'name.ilike.Solo Balance %',
+      'name.ilike.Invitation Test%',
+      'name.ilike.User Settings Test%',
     ].join(','))
 }
 

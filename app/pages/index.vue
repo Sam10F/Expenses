@@ -55,9 +55,15 @@ const router = useRouter()
 
 const showNewGroup = ref(false)
 
+const DEFAULT_GROUP_KEY = 'user_default_group_id'
+
 onMounted(async () => {
   await store.fetchGroups()
-  if (store.activeGroupId) {
+  const defaultGroupId = import.meta.client ? (localStorage.getItem(DEFAULT_GROUP_KEY) ?? '') : ''
+  if (defaultGroupId && store.groups.find(g => g.id === defaultGroupId)) {
+    await router.push(`/groups/${defaultGroupId}`)
+  }
+  else if (store.activeGroupId) {
     await router.push(`/groups/${store.activeGroupId}`)
   }
   else if (store.groups.length) {

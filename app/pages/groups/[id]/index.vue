@@ -20,8 +20,16 @@
       <NuxtLink :to="`/groups/${groupId}/expenses`" class="section-tab">
         {{ t('expenses.title') }}
       </NuxtLink>
-      <NuxtLink :to="`/groups/${groupId}/settings`" class="section-tab">
-        {{ t('settings.title') }}
+      <NuxtLink
+        :to="`/groups/${groupId}/settings`"
+        class="section-tab"
+        style="margin-left:auto;"
+        :aria-label="t('settings.title')"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
       </NuxtLink>
     </nav>
 
@@ -55,8 +63,8 @@
         </div>
       </div>
 
-      <!-- Balances section -->
-      <section class="page-section" :aria-labelledby="balanceTitleId">
+      <!-- Balances section — hidden for single-member groups -->
+      <section v-if="members.length > 1" class="page-section" :aria-labelledby="balanceTitleId">
         <div class="section-heading">
           <h2 :id="balanceTitleId" class="section-title">{{ t('balance.title') }}</h2>
         </div>
@@ -163,6 +171,7 @@
         <div class="section-heading">
           <h2 :id="categoryTitleId" class="section-title">{{ t('categories.title') }}</h2>
           <button
+            v-if="isAdmin"
             class="btn btn-secondary btn-sm"
             @click="showAddCategory = true"
           >
@@ -207,6 +216,7 @@
 <script setup lang="ts">
 import { useId } from 'vue'
 import { useGroupsStore } from '~/stores/groups'
+import { useAuthStore } from '~/stores/auth'
 import type { ExpenseWithDetails, Category, CategoryWithStats, MemberWithBalance, Member, ExpensePrefill, Settlement } from '#types/app'
 import { formatCurrency } from '~/utils/currency'
 import { formatDate } from '~/utils/date'
@@ -216,6 +226,7 @@ definePageMeta({ layout: 'default' })
 const router = useRouter()
 const { t }  = useI18n()
 const store  = useGroupsStore()
+const authStore = useAuthStore()
 
 const groupId = computed(() => useRoute().params.id as string)
 
@@ -223,7 +234,6 @@ const balanceTitleId        = useId()
 const categoryTitleId       = useId()
 const recentExpensesTitleId = useId()
 
-// Page state
 const showNewGroup       = ref(false)
 const showAddExpense     = ref(false)
 const showAddCategory    = ref(false)
@@ -236,7 +246,6 @@ const RECENT_EXPENSES     = 5
 
 const apiFetch = useApi()
 
-// Load group data
 const { data, pending, error, refresh } = await useAsyncData(
   `group-dashboard-${groupId.value}`,
   async () => {
@@ -261,6 +270,9 @@ const expenses       = computed(() => data.value?.expenses ?? [])
 const memberBalances = computed(() => data.value?.balanceData.memberBalances ?? [])
 const settlements    = computed(() => data.value?.balanceData.settlements ?? [])
 
+const currentMember = computed(() => members.value.find(m => m.user_id === authStore.user?.id) ?? null)
+const isAdmin = computed(() => currentMember.value?.role === 'admin')
+
 const visibleSettlements = computed(() =>
   showAllSettlements.value ? settlements.value : settlements.value.slice(0, SETTLEMENTS_VISIBLE),
 )
@@ -275,28 +287,19 @@ const recentExpenses = computed(() =>
     .slice(0, RECENT_EXPENSES),
 )
 
-// Category spending stats
 const categoryStats = computed<CategoryWithStats[]>(() => {
   const total = expenses.value.reduce((sum, e) => sum + e.amount, 0)
-
   return categories.value.map(cat => {
     const catTotal = expenses.value
       .filter(e => e.category_id === cat.id)
       .reduce((sum, e) => sum + e.amount, 0)
-    return {
-      ...cat,
-      totalAmount: catTotal,
-      percentage: total > 0 ? (catTotal / total) * 100 : 0,
-    }
+    return { ...cat, totalAmount: catTotal, percentage: total > 0 ? (catTotal / total) * 100 : 0 }
   })
 })
 
-// Set active group in store and ensure groups are loaded for the tab bar
 watch(groupId, (id) => store.setActiveGroup(id), { immediate: true })
 
-onMounted(() => {
-  store.fetchGroups()
-})
+onMounted(() => { store.fetchGroups() })
 
 function openSettlementModal(s: Settlement) {
   settlementPrefill.value = {
@@ -318,9 +321,7 @@ async function handleGroupCreated(id: string) {
   await router.push(`/groups/${id}`)
 }
 
-async function handleExpenseSaved() {
-  await refresh()
-}
+async function handleExpenseSaved() { await refresh() }
 
 async function handleCategoryCreated() {
   await refresh()

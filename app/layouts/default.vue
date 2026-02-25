@@ -55,6 +55,13 @@
           <button
             class="profile-dropdown-item"
             role="menuitem"
+            @click="goToUserSettings"
+          >
+            {{ t('nav.userSettings') }}
+          </button>
+          <button
+            class="profile-dropdown-item"
+            role="menuitem"
             @click="handleSignOut"
           >
             {{ t('auth.signOut') }}
@@ -103,6 +110,11 @@ function handleOutsideClick(e: MouseEvent) {
 function goToInvitations() {
   dropdownOpen.value = false
   navigateTo('/invitations')
+}
+
+function goToUserSettings() {
+  dropdownOpen.value = false
+  navigateTo('/settings')
 }
 
 async function handleSignOut() {

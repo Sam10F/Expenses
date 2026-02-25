@@ -14,6 +14,7 @@ useHead({
     { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
   ],
   meta: [
+    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     { name: 'theme-color', content: '#6366f1' },
     { name: 'mobile-web-app-capable', content: 'yes' },
     { name: 'apple-mobile-web-app-capable', content: 'yes' },

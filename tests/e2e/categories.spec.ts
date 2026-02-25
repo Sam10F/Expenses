@@ -6,6 +6,7 @@ import {
   loginTestUser,
   createTestGroup,
   addTestMember,
+  addTestMemberLinked,
   deleteTestGroup,
   createTestExpense,
   createTestCategory,
@@ -162,5 +163,27 @@ test.describe('Categories', () => {
     const generalChip = dialog.getByRole('button', { name: 'General' })
 
     await expect(generalChip).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  test('admin sees "Add category" button on dashboard', async ({ page }) => {
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('button', { name: /add category/i })).toBeVisible()
+  })
+
+  test('non-admin member does not see "Add category" button on dashboard', async ({ page }) => {
+    // Create a second user to act as a non-admin member
+    const { userId: userId2, username: username2, token: token2 } = await createTestUser('nonadmin')
+    const memberId2 = await addTestMemberLinked(groupId, userId2, 'NonAdmin')
+
+    await loginTestUser(page, userId2, username2, token2)
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('button', { name: /add category/i })).not.toBeVisible()
+
+    // Cleanup
+    await deleteTestUser(userId2)
   })
 })

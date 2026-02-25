@@ -153,4 +153,22 @@ test.describe('Balance', () => {
 
     await expect(page.getByText(/all settled up/i)).toBeVisible()
   })
+
+  test('balances section is hidden for a single-member group', async ({ page }) => {
+    const { groupId: soloGroupId } = await createTestGroup('Solo Balance Group', userId, { username: 'Solo' })
+
+    try {
+      await page.goto(`/groups/${soloGroupId}`)
+      await page.waitForLoadState('networkidle')
+
+      // Balances heading must NOT appear for a 1-member group
+      await expect(page.getByRole('heading', { name: /^balances$/i })).not.toBeVisible()
+
+      // Recent expenses and categories sections should still be visible
+      await expect(page.getByRole('heading', { name: /by category/i })).toBeVisible()
+    }
+    finally {
+      await deleteTestGroup(soloGroupId)
+    }
+  })
 })

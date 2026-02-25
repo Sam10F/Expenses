@@ -18,7 +18,8 @@
   },
   "nav": {
     "home": "Expenses",
-    "yourProfile": "Your profile"
+    "yourProfile": "Your profile",
+    "userSettings": "Settings"
   },
   "groups": {
     "title": "My Groups",
@@ -129,7 +130,11 @@
       "gifts": "Gifts",
       "tech": "Tech"
     },
-    "noSpending": "No spending yet"
+    "noSpending": "No spending yet",
+    "default": "Default",
+    "edit": {
+      "title": "Edit Category"
+    }
   },
   "members": {
     "title": "Members",
@@ -156,6 +161,10 @@
       "title": "Danger zone",
       "deleteGroup": "Delete group",
       "deleteDescription": "Permanently delete this group and all its expenses."
+    },
+    "categories": {
+      "title": "Categories",
+      "deleteConfirm": "Delete category \"{name}\"? Expenses using this category will move to General."
     }
   },
   "auth": {
@@ -202,5 +211,14 @@
     "user": "Member",
     "watcher": "Watcher",
     "changeRole": "Change role"
+  },
+  "userSettings": {
+    "title": "Account Settings",
+    "defaultGroup": {
+      "title": "Default Group",
+      "description": "Choose which group opens when you first launch the app.",
+      "none": "No default (use last visited)",
+      "saved": "Saved"
+    }
   }
 }

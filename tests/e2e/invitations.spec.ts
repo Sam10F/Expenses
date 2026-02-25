@@ -86,6 +86,28 @@ test.describe('Invitations', () => {
     await expect(page).toHaveURL(new RegExp(groupId))
   })
 
+
+  test('notification badge updates immediately after accepting invitation', async ({ page }) => {
+    // Create invitation directly in DB
+    await createTestInvitation(groupId, adminUserId, inviteeUserId)
+
+    // Invitee opens invitations page (badge should show 1)
+    await loginTestUser(page, inviteeUserId, inviteeUsername, inviteeToken)
+    await page.goto('/invitations')
+    await page.waitForLoadState('networkidle')
+
+    // Bell notification button should be visible in topbar
+    const notificationBtn = page.getByRole('button', { name: /invitations/i })
+    await expect(notificationBtn).toBeVisible()
+
+    // Accept the invitation
+    await page.getByRole('button', { name: /accept/i }).click()
+
+    // Navigate back to a group page — badge must be gone without full page reload
+    await page.waitForURL(new RegExp(groupId))
+    await expect(page.getByRole('button', { name: /invitations \(/i })).not.toBeVisible()
+  })
+
   test('invitee can decline invitation', async ({ page }) => {
     // Create invitation directly in DB
     await createTestInvitation(groupId, adminUserId, inviteeUserId)

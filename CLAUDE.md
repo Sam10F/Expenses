@@ -40,12 +40,17 @@ Shared expense tracker (like Tricount / SettleUp). Groups of 1–10 people track
 │   │   └── auth.vue
 │   ├── middleware/               # Route guards
 │   ├── pages/
-│   │   ├── index.vue             # Group list / landing
-│   │   ├── groups/
-│   │   │   ├── [id]/
-│   │   │   │   ├── index.vue     # Group dashboard (balance overview)
-│   │   │   │   ├── expenses.vue  # Expense list
-│   │   │   │   └── settings.vue  # Group settings
+│   │   ├── index.vue             # Group list / landing (respects default group pref)
+│   │   ├── settings.vue          # User account settings (default group)
+│   │   ├── invitations.vue       # Pending invitations
+│   │   ├── auth/
+│   │   │   ├── login.vue
+│   │   │   └── signup.vue
+│   │   └── groups/
+│   │       └── [id]/
+│   │           ├── index.vue     # Group dashboard (balance overview)
+│   │           ├── expenses.vue  # Expense list
+│   │           └── settings.vue  # Group settings
 │   ├── plugins/
 │   ├── stores/                   # Pinia stores
 │   └── utils/                    # Pure helper functions
@@ -157,6 +162,7 @@ expense_splits id, expense_id, member_id, amount, is_included
 |---|---|
 | `001_initial_schema.sql` | Groups, members, categories, expenses, expense_splits, RLS policies |
 | `002_member_color.sql` | `ALTER TABLE members ADD COLUMN color TEXT NOT NULL DEFAULT 'indigo'` |
+| `003_auth_and_roles.sql` | profiles, invitations tables; adds user_id, role to members; created_by to expenses |
 
 ---
 
@@ -299,6 +305,12 @@ sips -z 180 180 /tmp/icon.svg.png -o public/apple-touch-icon.png
 
 ---
 
+## Navigation — Group Settings Icon
+
+The group settings link in the section tabs is an **icon-only** link (gear SVG) positioned at the **far right** of the tab bar via `margin-left: auto`. It has `aria-label` for accessibility. Do not add text to this link.
+
+---
+
 ## Code Standards
 
 - **TypeScript strict mode** is enabled. No `any`, no `// @ts-ignore`.
@@ -373,7 +385,12 @@ An agent must verify every item below before considering any implementation comp
 - 1 to 10 members per group.
 - Groups have: name, description, colour, members list.
 - Users can switch between groups from any screen.
-- All members have the same permissions (no roles).
+- Roles: `admin` | `user` | `watcher` per group.
+
+### User Settings (`/settings`)
+- Accessible from the user dropdown in the topbar ("Settings" menu item).
+- **Default Group**: user can designate one group as the default; the app navigates there automatically on first load instead of the last-visited group.
+- Preference is stored in `localStorage` under the key `user_default_group_id`.
 
 ### Expenses
 - Fields: title, amount (€), date, paid by (one member), split among (subset of members).
@@ -384,6 +401,7 @@ An agent must verify every item below before considering any implementation comp
 
 ### Balance
 - Group balance overview must be **immediately visible and understandable**.
+- The **Balances section is hidden** for groups with only one member (no balance to display).
 - Show each member's net balance (positive = owed money, negative = owes money).
 - Show suggested settlements to minimise the number of transactions.
 - Up to 5 settlements are shown by default; a "Show more" button reveals the rest.
@@ -392,22 +410,26 @@ An agent must verify every item below before considering any implementation comp
 ### Members
 - Each member has a name, a **color**, and an optional profile picture.
 - **Member color** is chosen from a palette of 7: indigo, amber, emerald, rose, sky, violet, orange. Defaults to indigo.
+- **Color can only be changed by the member themselves** (based on `user_id` match). Admins cannot change other members' colors.
 - Color is set when adding a member during group creation, and can be changed at any time in group settings. Changes are saved immediately (no separate save button).
 - The member's color is used as their avatar background throughout the app (balance cards, expense rows, settlement rows, recent expenses on the dashboard).
 - Color is derived from `app/utils/memberColor.ts`. Always pass `:color="member.color"` to `<AppAvatar>` — never rely on the name-hash fallback for persisted members.
 - Members can edit their own name and profile picture.
+- **Roles**: `admin` | `user` | `watcher`. Group creator becomes admin. Invited users receive the role assigned at invitation time.
 
 ### Categories
 - Every group has exactly one default category: **General** (locked — cannot be renamed, recoloured, or deleted).
 - When a group is created, only the General category is created automatically.
+- **Only admins** can create, edit, or delete custom categories. Non-admins can view but not modify categories.
 - Users can add unlimited custom categories per group. Each category has: **name**, **color** (from a predefined palette), and **icon** (chosen from a predefined icon set).
 - Every expense must belong to exactly one category. If no category is selected when adding an expense, it defaults to **General**.
 - The category selector in the Add Expense form is a **pill/chip selector** showing all group categories; General is pre-selected by default.
 - Categories are displayed in a **"By Category" section** on the group dashboard, directly below the Balances section.
 - The By Category section shows a **donut pie chart** (static/decorative, no click interaction) with an **all-time** breakdown of total spending per category.
 - The chart legend shows: colour dot · icon · category name · total amount (€) · percentage. Sorted by amount descending.
-- A **"+ Add category"** button is placed inline next to the "By Category" section heading. It opens a modal.
-- The Add Category modal contains: name input, colour picker (preset swatches), icon picker (predefined grid of SVG icons).
+- A **"+ Add category"** button (admin-only) is placed inline next to the "By Category" section heading. It opens a modal.
+- Categories are also manageable from the **group settings page** (admin-only section): add, edit name/colour/icon, delete non-default categories.
+- The Add/Edit Category modal contains: name input, colour picker (preset swatches), icon picker (predefined grid of SVG icons).
 - **Icon set** (predefined, not user-extensible): General, Food, Home, Transport, Travel, Entertainment, Shopping, Health, Education, Utilities, Drinks, Work, Sports, Gifts, Tech.
 - **Colour palette** for categories (10 presets): indigo, amber, emerald, rose, sky, violet, orange, teal, pink, slate. Cannot be General's gray (#9ca3af), which is reserved.
 
@@ -444,3 +466,4 @@ An agent must verify every item below before considering any implementation comp
 | `createTestExpense(groupId, paidById, categoryId, memberIds[], options)` | Creates an expense with equal splits. |
 | `createTestExpensesBulk(groupId, paidById, categoryId, memberIds[], count)` | Batch-inserts N expenses (for pagination tests). |
 | `createTestCategory(groupId, options)` | Creates a custom (non-default) category. Returns category ID. |
+| `addTestMemberLinked(groupId, userId, name, role)` | Creates a member row linked to a real auth user (for role-based access tests). Returns member ID. |

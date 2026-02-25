@@ -18,7 +18,8 @@
   },
   "nav": {
     "home": "Gastos",
-    "yourProfile": "Tu perfil"
+    "yourProfile": "Tu perfil",
+    "userSettings": "Configuración"
   },
   "groups": {
     "title": "Mis grupos",
@@ -129,7 +130,11 @@
       "gifts": "Regalos",
       "tech": "Tecnología"
     },
-    "noSpending": "Sin gastos aún"
+    "noSpending": "Sin gastos aún",
+    "default": "Predeterminada",
+    "edit": {
+      "title": "Editar categoría"
+    }
   },
   "members": {
     "title": "Miembros",
@@ -156,6 +161,10 @@
       "title": "Zona de peligro",
       "deleteGroup": "Eliminar grupo",
       "deleteDescription": "Elimina permanentemente este grupo y todos sus gastos."
+    },
+    "categories": {
+      "title": "Categorías",
+      "deleteConfirm": "Eliminar la categoría \"{name}\"? Los gastos con esta categoría pasarán a General."
     }
   },
   "auth": {
@@ -202,5 +211,14 @@
     "user": "Miembro",
     "watcher": "Observador",
     "changeRole": "Cambiar rol"
+  },
+  "userSettings": {
+    "title": "Configuración de cuenta",
+    "defaultGroup": {
+      "title": "Grupo predeterminado",
+      "description": "Elige qué grupo se abre cuando inicias la aplicación por primera vez.",
+      "none": "Sin predeterminado (usar el último visitado)",
+      "saved": "Guardado"
+    }
   }
 }

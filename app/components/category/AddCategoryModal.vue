@@ -1,18 +1,18 @@
 <template>
   <AppModal
     :open="open"
-    :title="t('categories.add.title')"
+    :title="editCategory ? t('categories.edit.title') : t('categories.add.title')"
     @close="emit('close')"
   >
-    <form id="add-category-form" novalidate @submit.prevent="handleSubmit">
+    <form :id="formId" novalidate @submit.prevent="handleSubmit">
       <!-- Name -->
       <div class="form-field" style="margin-bottom:16px;">
-        <label for="cat-name" class="form-label">
+        <label :for="nameInputId" class="form-label">
           {{ t('categories.add.nameLabel') }}
           <span aria-hidden="true" style="color:var(--color-negative)">*</span>
         </label>
         <input
-          id="cat-name"
+          :id="nameInputId"
           v-model="form.name"
           type="text"
           class="form-input"
@@ -20,9 +20,9 @@
           :placeholder="t('categories.add.namePlaceholder')"
           autocomplete="off"
           required
-          :aria-describedby="errors.name ? 'cat-name-error' : undefined"
+          :aria-describedby="errors.name ? errorId : undefined"
         />
-        <span v-if="errors.name" id="cat-name-error" class="form-error" role="alert">
+        <span v-if="errors.name" :id="errorId" class="form-error" role="alert">
           {{ errors.name }}
         </span>
       </div>
@@ -81,11 +81,11 @@
       </button>
       <button
         type="submit"
-        form="add-category-form"
+        :form="formId"
         class="btn btn-primary btn-md"
         :disabled="saving"
       >
-        {{ saving ? t('common.loading') : t('categories.add.submit') }}
+        {{ saving ? t('common.loading') : (editCategory ? t('common.save') : t('categories.add.submit')) }}
       </button>
     </template>
   </AppModal>
@@ -98,16 +98,21 @@ import { CATEGORY_ICON_PATHS } from '~/utils/categoryIcons'
 import type { Category } from '#types/app'
 
 const props = defineProps<{
-  open:    boolean
-  groupId: string
+  open:           boolean
+  groupId:        string
+  editCategory?:  Category | null
 }>()
 
 const emit = defineEmits<{
   close:   []
   created: [category: Category]
+  updated: [category: Category]
 }>()
 
 const { t } = useI18n()
+const formId      = useId()
+const nameInputId = useId()
+const errorId     = useId()
 const colorLabelId = useId()
 const iconLabelId  = useId()
 const apiFetch = useApi()
@@ -120,6 +125,28 @@ const form = reactive({
 
 const errors = reactive({ name: '' })
 const saving = ref(false)
+
+// Pre-fill form when editing
+watch(() => props.editCategory, (cat) => {
+  if (cat) {
+    form.name  = cat.name
+    form.color = cat.color
+    form.icon  = cat.icon
+  }
+  else {
+    form.name  = ''
+    form.color = 'indigo'
+    form.icon  = 'general'
+  }
+}, { immediate: true })
+
+// Reset form when modal closes
+watch(() => props.open, (open) => {
+  if (!open && !props.editCategory) {
+    Object.assign(form, { name: '', color: 'indigo', icon: 'general' })
+    errors.name = ''
+  }
+})
 
 function iconPath(icon: string): string {
   return CATEGORY_ICON_PATHS[icon] ?? CATEGORY_ICON_PATHS['general'] ?? ''
@@ -138,13 +165,21 @@ async function handleSubmit() {
   if (!validate()) return
   saving.value = true
   try {
-    const data = await apiFetch<Category>(`/api/groups/${props.groupId}/categories`, {
-      method: 'POST',
-      body: { name: form.name.trim(), color: form.color, icon: form.icon },
-    })
-    emit('created', data)
+    if (props.editCategory) {
+      const data = await apiFetch<Category>(
+        `/api/groups/${props.groupId}/categories/${props.editCategory.id}`,
+        { method: 'PUT', body: { name: form.name.trim(), color: form.color, icon: form.icon } },
+      )
+      emit('updated', data)
+    }
+    else {
+      const data = await apiFetch<Category>(`/api/groups/${props.groupId}/categories`, {
+        method: 'POST',
+        body: { name: form.name.trim(), color: form.color, icon: form.icon },
+      })
+      emit('created', data)
+    }
     emit('close')
-    Object.assign(form, { name: '', color: 'indigo', icon: 'general' })
   }
   finally {
     saving.value = false
