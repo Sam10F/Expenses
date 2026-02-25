@@ -35,7 +35,17 @@
     "passwordMismatch": "Passwords do not match",
     "usernameTaken": "Username is already taken",
     "invalidCredentials": "Invalid username or password",
-    "signupSuccess": "Account created! Please sign in."
+    "signupSuccess": "Account created! Please sign in.",
+    "usernameRequired": "Username is required",
+    "passwordRequired": "Password is required",
+    "usernameInvalid": "3–20 characters, letters, numbers and underscores only",
+    "passwordWeak": "Password must contain uppercase, lowercase, number, and special character",
+    "passwordHasLower": "Lowercase letter",
+    "passwordHasUpper": "Uppercase letter",
+    "passwordHasNumber": "Number",
+    "passwordHasSpecial": "Special character ({'@'}$!%*?&#^)",
+    "passwordHasLength": "At least 8 characters",
+    "passwordRequirements": "Password requirements"
   },
   "invitations": {
     "title": "Invitations",
@@ -78,6 +88,11 @@
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "What is this group for?",
       "colorLabel": "Accent color",
+      "membersLabel": "Members",
+      "membersHint": "Add at least one member",
+      "memberNamePlaceholder": "Member name",
+      "addMember": "Add member",
+      "memberRequired": "Add at least one member",
       "submit": "Create group"
     },
     "createSuccess": "Group created",
@@ -108,6 +123,7 @@
       "paidByLabel": "Paid by",
       "categoryLabel": "Category",
       "splitLabel": "Split among",
+      "customSplit": "Custom split",
       "splitCustomHint": "Amounts must add up to {total}",
       "splitInvalid": "Amounts must sum to {total}",
       "submit": "Save expense"
@@ -119,7 +135,9 @@
     "fab": "Add expense",
     "paidBy": "Paid by {name}",
     "yourShare": "Your share {amount}",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "recent": "Recent Expenses",
+    "seeAll": "See all"
   },
   "balance": {
     "title": "Balances",
@@ -130,7 +148,8 @@
       "title": "Suggested settlements",
       "pays": "pays",
       "markSettled": "Mark settled",
-      "noSettlements": "All settled up!"
+      "noSettlements": "All settled up!",
+      "record": "Record settlement"
     }
   },
   "categories": {

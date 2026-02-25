@@ -1,8 +1,10 @@
 <template>
-  <section class="page-container" aria-labelledby="invitations-heading">
-    <h1 id="invitations-heading" class="page-title">{{ t('invitations.title') }}</h1>
+  <section class="page-content" aria-labelledby="invitations-heading">
+    <div style="margin-bottom:24px;">
+      <h1 id="invitations-heading" style="font-size:18px;font-weight:700;margin:0;">{{ t('invitations.title') }}</h1>
+    </div>
 
-    <div v-if="loading" class="loading-state" aria-live="polite" aria-busy="true">
+    <div v-if="loading" aria-live="polite" aria-busy="true">
       <span class="spin" aria-hidden="true" style="display:inline-block;width:20px;height:20px;border:2px solid var(--color-border);border-top-color:var(--color-primary);border-radius:50%;"></span>
     </div>
 

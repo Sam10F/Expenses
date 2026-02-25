@@ -106,7 +106,7 @@
               :checked="splitCalc.isCustom.value"
               @change="splitCalc.setCustomMode(!splitCalc.isCustom.value)"
             />
-            Custom split
+            {{ t('expenses.add.customSplit') }}
           </label>
         </div>
 
@@ -202,6 +202,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const splitLabelId = useId()
 const apiFetch = useApi()
+const authStore = useAuthStore()
 
 const nonWatcherMembers = computed(() =>
   props.members.filter(m => (m as { role?: string }).role !== 'watcher'),
@@ -258,7 +259,8 @@ watch([() => props.expense, () => props.prefill], ([exp, pre]) => {
   }
   else {
     Object.assign(form, { title: '', amount: 0, date: todayISO() })
-    form.paid_by     = nonWatcherMembers.value[0]?.id ?? ''
+    const currentUserMember = nonWatcherMembers.value.find(m => m.user_id === authStore.user?.id)
+    form.paid_by     = currentUserMember?.id ?? nonWatcherMembers.value[0]?.id ?? ''
     form.category_id = props.categories.find(c => c.is_default)?.id ?? ''
     splitCalc.initSplits()
   }

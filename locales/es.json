@@ -71,6 +71,7 @@
       "paidByLabel": "Pagado por",
       "categoryLabel": "Categoría",
       "splitLabel": "Dividir entre",
+      "customSplit": "División personalizada",
       "splitCustomHint": "Los importes deben sumar {total}",
       "splitInvalid": "Los importes deben sumar {total}",
       "submit": "Guardar gasto"
@@ -181,7 +182,8 @@
     "passwordHasUpper": "Letra mayúscula",
     "passwordHasNumber": "Número",
     "passwordHasSpecial": "Carácter especial (@$!%*?&#^)",
-    "passwordHasLength": "Mínimo 8 caracteres"
+    "passwordHasLength": "Mínimo 8 caracteres",
+    "passwordRequirements": "Requisitos de contraseña"
   },
   "invitations": {
     "title": "Invitaciones",

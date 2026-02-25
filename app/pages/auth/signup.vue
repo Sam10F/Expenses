@@ -50,7 +50,7 @@
         <p id="password-hint" class="form-hint">{{ t('auth.passwordRules') }}</p>
 
         <!-- Inline strength indicators -->
-        <ul class="password-checks" aria-label="Password requirements">
+        <ul role="list" class="password-checks" :aria-label="t('auth.passwordRequirements')">
           <li :class="{ 'check-pass': hasLower }">
             <span aria-hidden="true">{{ hasLower ? '✓' : '○' }}</span>
             {{ t('auth.passwordHasLower') }}
