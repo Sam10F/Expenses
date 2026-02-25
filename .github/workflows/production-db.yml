@@ -30,5 +30,10 @@ jobs:
       - name: Link to Project
         run: supabase link --project-ref $SUPABASE_PROJECT_ID --password $SUPABASE_DB_PASSWORD
 
+      - name: Repair Migration History
+        run: |
+          supabase migration repair --status reverted 20260221191851 20260222163941
+          supabase migration repair --status applied 001_initial_schema 002_member_color
+
       - name: Push Migrations to Production
         run: supabase db push --password $SUPABASE_DB_PASSWORD
