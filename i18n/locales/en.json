@@ -14,7 +14,8 @@
     "optional": "optional",
     "required": "Required",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "retry": "Try again"
   },
   "nav": {
     "home": "Expenses",

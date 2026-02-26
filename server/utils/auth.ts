@@ -41,15 +41,29 @@ export async function requireAuth(event: H3Event): Promise<{ userId: string; use
 /**
  * Verifies that `userId` is an active member of `groupId`.
  * Returns the member row (id, role) or throws 403.
+ *
+ * Throws 500 when the database query itself fails (transient connection issue,
+ * etc.) so the client can distinguish a real "not a member" 403 from a
+ * retriable server-side failure.
  */
 export async function requireGroupMember(groupId: string, userId: string) {
   const supabase = createSupabaseAdmin()
-  const { data: member } = await supabase
+  const { data: member, error } = await supabase
     .from('members')
     .select('id, role')
     .eq('group_id', groupId)
     .eq('user_id', userId)
     .single()
+
+  if (error) {
+    // PGRST116 = "no rows returned" — user is genuinely not a member.
+    if (error.code === 'PGRST116') {
+      throw createError({ statusCode: 403, message: 'Not a member of this group' })
+    }
+    // Any other code is a transient DB / network failure — surface as 500 so
+    // the client knows it can retry instead of treating this as a permission error.
+    throw createError({ statusCode: 500, message: 'Internal server error' })
+  }
 
   if (!member) {
     throw createError({ statusCode: 403, message: 'Not a member of this group' })

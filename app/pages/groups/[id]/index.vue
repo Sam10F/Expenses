@@ -40,8 +40,22 @@
       <p style="color:var(--color-text-secondary);">{{ t('common.loading') }}</p>
     </div>
 
-    <div v-else-if="error" class="page-content">
+    <div v-else-if="error" class="page-content" style="display:flex;flex-direction:column;align-items:flex-start;gap:12px;">
       <p style="color:var(--color-negative);">{{ t('common.error') }}</p>
+      <button
+        v-if="errorStatusCode !== 403"
+        class="btn btn-secondary btn-sm"
+        @click="refresh()"
+      >
+        {{ t('common.retry') }}
+      </button>
+      <button
+        v-else
+        class="btn btn-secondary btn-sm"
+        @click="navigateTo('/')"
+      >
+        {{ t('nav.home') }}
+      </button>
     </div>
 
     <div v-else class="page-content">
@@ -386,6 +400,10 @@ const categoryStats = computed<CategoryWithStats[]>(() => {
     return { ...cat, totalAmount: catTotal, percentage: total > 0 ? (catTotal / total) * 100 : 0 }
   })
 })
+
+const errorStatusCode = computed(() =>
+  (error.value as { statusCode?: number } | null)?.statusCode ?? null,
+)
 
 watch(groupId, (id) => store.setActiveGroup(id), { immediate: true })
 
