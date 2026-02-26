@@ -19,6 +19,14 @@
         <div class="expense-row-title">{{ expense.title }}</div>
         <div class="expense-row-meta">
           {{ expense.paidByMember?.name }} · {{ formatDate(expense.date) }}
+          <span v-if="expense.category" class="expense-row-category">
+            <span
+              class="expense-row-cat-dot"
+              :style="{ background: categoryColorHex(expense.category.color) }"
+              aria-hidden="true"
+            ></span>
+            {{ expense.category.name }}
+          </span>
         </div>
       </div>
 
@@ -43,6 +51,7 @@
 import type { ExpenseWithDetails } from '#types/app'
 import { formatCurrency } from '~/utils/currency'
 import { formatDate } from '~/utils/date'
+import { CATEGORY_COLOR_HEX } from '~/utils/categoryIcons'
 
 defineProps<{
   expense: ExpenseWithDetails
@@ -54,6 +63,10 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+function categoryColorHex(color: string): string {
+  return CATEGORY_COLOR_HEX[color] ?? '#9ca3af'
+}
 </script>
 
 <style>
@@ -102,6 +115,24 @@ const { t } = useI18n()
   font-size: 12px;
   color: var(--color-text-secondary);
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.expense-row-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.expense-row-cat-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  flex-shrink: 0;
 }
 
 .expense-row-amount {

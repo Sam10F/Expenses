@@ -20,6 +20,9 @@
       >
         {{ t('expenses.title') }}
       </NuxtLink>
+      <NuxtLink :to="`/groups/${groupId}/categories`" class="section-tab">
+        {{ t('categories.title') }}
+      </NuxtLink>
       <NuxtLink
         :to="`/groups/${groupId}/settings`"
         class="section-tab"

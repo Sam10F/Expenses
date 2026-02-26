@@ -247,6 +247,46 @@ test.describe('Expenses', () => {
     await expect(page.getByText('General').first()).toBeVisible()
   })
 
+  test('expense list row shows category badge', async ({ page }) => {
+    await createTestExpense(
+      groupId,
+      adminMemberId,
+      defaultCategoryId,
+      [adminMemberId, bobId],
+      { title: 'Category Badge Expense', amount: 20 },
+    )
+
+    await page.goto(`/groups/${groupId}/expenses`)
+    await page.waitForLoadState('networkidle')
+
+    // The expense row meta should display the category name (General)
+    await expect(page.getByText('Category Badge Expense')).toBeVisible()
+    await expect(page.locator('.expense-row-category').filter({ hasText: 'General' })).toBeVisible()
+  })
+
+  test('clicking recent expense on dashboard opens edit modal', async ({ page }) => {
+    await createTestExpense(
+      groupId,
+      adminMemberId,
+      defaultCategoryId,
+      [adminMemberId, bobId],
+      { title: 'Clickable Recent Expense', amount: 30 },
+    )
+
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // Click the recent expense row
+    await page.locator('.recent-expense-row').first().click()
+
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('heading', { name: /edit expense/i })).toBeVisible()
+
+    const titleInput = dialog.getByLabel(/title/i)
+    await expect(titleInput).toHaveValue('Clickable Recent Expense')
+  })
+
   test('load more button appears and loads additional expenses', async ({ page }) => {
     await createTestExpensesBulk(
       groupId,

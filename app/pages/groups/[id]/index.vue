@@ -20,6 +20,9 @@
       <NuxtLink :to="`/groups/${groupId}/expenses`" class="section-tab">
         {{ t('expenses.title') }}
       </NuxtLink>
+      <NuxtLink :to="`/groups/${groupId}/categories`" class="section-tab">
+        {{ t('categories.title') }}
+      </NuxtLink>
       <NuxtLink
         :to="`/groups/${groupId}/settings`"
         class="section-tab"
@@ -138,26 +141,32 @@
           <li
             v-for="exp in recentExpenses"
             :key="exp.id"
-            style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--color-border);"
+            style="border-bottom:1px solid var(--color-border);"
           >
-            <AppAvatar :name="exp.paidByMember.name" :color="exp.paidByMember.color" size="sm" :aria-hidden="true" />
-            <div style="flex:1;min-width:0;">
-              <div style="font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                {{ exp.title }}
+            <button
+              class="recent-expense-row"
+              :aria-label="`${t('common.edit')} ${exp.title}`"
+              @click="handleEditRecentExpense(exp)"
+            >
+              <AppAvatar :name="exp.paidByMember.name" :color="exp.paidByMember.color" size="sm" :aria-hidden="true" />
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  {{ exp.title }}
+                </div>
+                <div style="font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+                  <span>{{ exp.paidByMember.name }} · {{ formatDate(exp.date) }}</span>
+                  <span v-if="exp.category" style="display:inline-flex;align-items:center;gap:3px;">
+                    <span
+                      style="display:inline-block;width:6px;height:6px;border-radius:9999px;flex-shrink:0;"
+                      :style="{ background: categoryColorHex(exp.category.color) }"
+                      aria-hidden="true"
+                    ></span>
+                    <span>{{ exp.category.name }}</span>
+                  </span>
+                </div>
               </div>
-              <div style="font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-                <span>{{ exp.paidByMember.name }} · {{ formatDate(exp.date) }}</span>
-                <span v-if="exp.category" style="display:inline-flex;align-items:center;gap:3px;">
-                  <span
-                    style="display:inline-block;width:6px;height:6px;border-radius:9999px;flex-shrink:0;"
-                    :style="{ background: categoryColorHex(exp.category.color) }"
-                    aria-hidden="true"
-                  ></span>
-                  <span>{{ exp.category.name }}</span>
-                </span>
-              </div>
-            </div>
-            <span style="font-size:14px;font-weight:600;white-space:nowrap;">{{ formatCurrency(exp.amount) }}</span>
+              <span style="font-size:14px;font-weight:600;white-space:nowrap;">{{ formatCurrency(exp.amount) }}</span>
+            </button>
           </li>
         </ul>
 
@@ -176,6 +185,29 @@
         <div class="section-heading">
           <h2 :id="categoryTitleId" class="section-title">{{ t('categories.title') }}</h2>
           <div style="display:flex;align-items:center;gap:8px;">
+            <!-- Month selector inline (shown only in monthly view) -->
+            <div v-if="selectedCategoryView === 'monthly'" class="category-month-nav" aria-live="polite">
+              <button
+                class="btn btn-ghost btn-sm"
+                :aria-label="t('categories.prevMonth')"
+                @click="prevMonth"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span class="category-month-label">{{ selectedMonthLabel }}</span>
+              <button
+                class="btn btn-ghost btn-sm"
+                :aria-label="t('categories.nextMonth')"
+                :disabled="isCurrentMonth"
+                @click="nextMonth"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
             <!-- View toggle pills -->
             <div class="category-view-toggle" role="group" :aria-label="t('categories.title')">
               <button
@@ -195,38 +227,7 @@
                 {{ t('categories.viewAll') }}
               </button>
             </div>
-            <button
-              v-if="isAdmin"
-              class="btn btn-secondary btn-sm"
-              @click="showAddCategory = true"
-            >
-              + {{ t('categories.addButton') }}
-            </button>
           </div>
-        </div>
-
-        <!-- Month navigator (shown only in monthly view) -->
-        <div v-if="selectedCategoryView === 'monthly'" class="category-month-nav" aria-live="polite">
-          <button
-            class="btn btn-ghost btn-sm"
-            :aria-label="t('categories.prevMonth')"
-            @click="prevMonth"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <span class="category-month-label">{{ selectedMonthLabel }}</span>
-          <button
-            class="btn btn-ghost btn-sm"
-            :aria-label="t('categories.nextMonth')"
-            :disabled="isCurrentMonth"
-            @click="nextMonth"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
         </div>
 
         <CategoryPieChart :categories="categoryStats" :expenses="categoryViewExpenses" />
@@ -254,19 +255,12 @@
       @saved="handleExpenseSaved"
     />
 
-    <AddCategoryModal
-      :open="showAddCategory"
-      :group-id="groupId"
-      @close="showAddCategory = false"
-      @created="handleCategoryCreated"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useId } from 'vue'
 import { useGroupsStore } from '~/stores/groups'
-import { useAuthStore } from '~/stores/auth'
 import type { ExpenseWithDetails, Category, CategoryWithStats, MemberWithBalance, Member, ExpensePrefill, Settlement } from '#types/app'
 import { formatCurrency } from '~/utils/currency'
 import { formatDate } from '~/utils/date'
@@ -277,7 +271,6 @@ definePageMeta({ layout: 'default' })
 const router = useRouter()
 const { t }  = useI18n()
 const store  = useGroupsStore()
-const authStore = useAuthStore()
 
 const groupId = computed(() => useRoute().params.id as string)
 
@@ -287,7 +280,6 @@ const recentExpensesTitleId = useId()
 
 const showNewGroup       = ref(false)
 const showAddExpense     = ref(false)
-const showAddCategory    = ref(false)
 const showAllSettlements = ref(false)
 const editingExpense     = ref<ExpenseWithDetails | null>(null)
 const settlementPrefill  = ref<ExpensePrefill | null>(null)
@@ -300,13 +292,13 @@ const selectedMonth = ref({ year: now.getFullYear(), month: now.getMonth() + 1 }
 const SETTLEMENTS_VISIBLE = 5
 const RECENT_EXPENSES     = 5
 
-const MONTH_NAMES_LONG = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+const MONTH_NAMES_SHORT = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ]
 
 const selectedMonthLabel = computed(() => {
-  const name = MONTH_NAMES_LONG[selectedMonth.value.month - 1]
+  const name = MONTH_NAMES_SHORT[selectedMonth.value.month - 1]
   return `${name} ${selectedMonth.value.year}`
 })
 
@@ -364,9 +356,6 @@ const expenses       = computed(() => data.value?.expenses ?? [])
 const memberBalances = computed(() => data.value?.balanceData.memberBalances ?? [])
 const settlements    = computed(() => data.value?.balanceData.settlements ?? [])
 
-const currentMember = computed(() => members.value.find(m => m.user_id === authStore.user?.id) ?? null)
-const isAdmin = computed(() => currentMember.value?.role === 'admin')
-
 const visibleSettlements = computed(() =>
   showAllSettlements.value ? settlements.value : settlements.value.slice(0, SETTLEMENTS_VISIBLE),
 )
@@ -402,6 +391,11 @@ watch(groupId, (id) => store.setActiveGroup(id), { immediate: true })
 
 onMounted(() => { store.fetchGroups() })
 
+function handleEditRecentExpense(exp: ExpenseWithDetails) {
+  editingExpense.value = exp
+  showAddExpense.value = true
+}
+
 function openSettlementModal(s: Settlement) {
   settlementPrefill.value = {
     title:          `${s.from.name} → ${s.to.name}`,
@@ -424,10 +418,6 @@ async function handleGroupCreated(id: string) {
 
 async function handleExpenseSaved() { await refresh() }
 
-async function handleCategoryCreated() {
-  await refresh()
-  showAddCategory.value = false
-}
 </script>
 
 <style>
@@ -472,19 +462,45 @@ async function handleCategoryCreated() {
   outline-offset: -2px;
 }
 
-/* Month navigation */
+/* Month navigation — inline in section heading */
 .category-month-nav {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 12px;
 }
 
 .category-month-label {
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text);
-  min-width: 130px;
+  min-width: 80px;
   text-align: center;
+}
+
+/* Recent expense row — clickable */
+.recent-expense-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-sans);
+  transition: background 120ms ease;
+  border-radius: var(--radius-md);
+}
+
+.recent-expense-row:hover {
+  background: var(--color-surface-hover);
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.recent-expense-row:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 </style>

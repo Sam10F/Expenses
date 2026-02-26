@@ -42,8 +42,8 @@ test.describe('Categories', () => {
     await deleteTestGroup(groupId)
   })
 
-  test('add category via modal (happy path) @a11y', async ({ page }) => {
-    await page.goto(`/groups/${groupId}`)
+  test('add category via modal in settings (happy path) @a11y', async ({ page }) => {
+    await page.goto(`/groups/${groupId}/settings`)
     await page.waitForLoadState('networkidle')
 
     await page.getByRole('button', { name: /add category/i }).click()
@@ -73,8 +73,8 @@ test.describe('Categories', () => {
     expect(violations, `a11y violations: ${JSON.stringify(violations.map(v => v.id))}`).toHaveLength(0)
   })
 
-  test('add category - name required validation', async ({ page }) => {
-    await page.goto(`/groups/${groupId}`)
+  test('add category - name required validation (in settings)', async ({ page }) => {
+    await page.goto(`/groups/${groupId}/settings`)
     await page.waitForLoadState('networkidle')
 
     await page.getByRole('button', { name: /add category/i }).click()
@@ -107,7 +107,7 @@ test.describe('Categories', () => {
     await page.goto(`/groups/${groupId}`)
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('General')).toBeVisible()
+    await expect(page.locator('.legend-name').filter({ hasText: 'General' })).toBeVisible()
     await expect(page.locator('.legend-amount').filter({ hasText: '€40.00' })).toBeVisible()
     await expect(page.locator('.legend-pct').filter({ hasText: '100%' })).toBeVisible()
   })
@@ -165,20 +165,24 @@ test.describe('Categories', () => {
     await expect(generalChip).toHaveAttribute('aria-pressed', 'true')
   })
 
-  test('admin sees "Add category" button on dashboard', async ({ page }) => {
+  test('admin sees "Add category" button in group settings (not on dashboard)', async ({ page }) => {
+    // Dashboard should NOT have the add category button
     await page.goto(`/groups/${groupId}`)
     await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('button', { name: /add category/i })).not.toBeVisible()
 
+    // Settings page SHOULD have it
+    await page.goto(`/groups/${groupId}/settings`)
+    await page.waitForLoadState('networkidle')
     await expect(page.getByRole('button', { name: /add category/i })).toBeVisible()
   })
 
-  test('non-admin member does not see "Add category" button on dashboard', async ({ page }) => {
-    // Create a second user to act as a non-admin member
+  test('non-admin member does not see "Add category" button in settings', async ({ page }) => {
     const { userId: userId2, username: username2, token: token2 } = await createTestUser('nonadmin')
     await addTestMemberLinked(groupId, userId2, 'NonAdmin')
 
     await loginTestUser(page, userId2, username2, token2)
-    await page.goto(`/groups/${groupId}`)
+    await page.goto(`/groups/${groupId}/settings`)
     await page.waitForLoadState('networkidle')
 
     await expect(page.getByRole('button', { name: /add category/i })).not.toBeVisible()
@@ -232,10 +236,21 @@ test.describe('Categories', () => {
     await expect(page.getByText(/no spending yet/i)).toBeVisible()
 
     // Navigate to previous month
-    await page.getByRole('button', { name: /previous month/i }).click()
+    await page.getByRole('button', { name: 'Previous month', exact: true }).click()
 
     // Previous month's expense should appear
     await expect(page.locator('.legend-amount').filter({ hasText: '€25.00' })).toBeVisible()
+  })
+
+  test('month label shows short month name in By Category section', async ({ page }) => {
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    const now = new Date()
+    const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const expectedLabel = `${shortMonths[now.getMonth()]} ${now.getFullYear()}`
+
+    await expect(page.locator('.category-month-label')).toContainText(expectedLabel)
   })
 
   test('clicking a category row expands and collapses its expense list', async ({ page }) => {
@@ -264,5 +279,37 @@ test.describe('Categories', () => {
     await generalBtn.click()
     await expect(generalBtn).toHaveAttribute('aria-expanded', 'false')
     await expect(page.locator('.category-expense-title').filter({ hasText: 'Expandable Expense' })).not.toBeVisible()
+  })
+
+  test('"By Category" tab navigates to categories page @a11y', async ({ page }) => {
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // Click the By Category tab
+    await page.getByRole('link', { name: /by category/i }).click()
+    await page.waitForLoadState('networkidle')
+
+    await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/categories`))
+    await expect(page.getByRole('heading', { name: /by category/i })).toBeVisible()
+
+    const results = await new AxeBuilder({ page }).analyze()
+    const violations = results.violations.filter(v =>
+      v.impact === 'critical' || v.impact === 'serious',
+    )
+    expect(violations, `a11y violations: ${JSON.stringify(violations.map(v => v.id))}`).toHaveLength(0)
+  })
+
+  test('By Category tab shows same chart as dashboard section', async ({ page }) => {
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Chart Test Expense', amount: 45,
+    })
+
+    // Check on categories tab (use all-time view)
+    await page.goto(`/groups/${groupId}/categories`)
+    await page.waitForLoadState('networkidle')
+
+    await page.getByRole('button', { name: /^all$/i }).click()
+    await expect(page.locator('.legend-name').filter({ hasText: 'General' })).toBeVisible()
+    await expect(page.locator('.legend-amount').filter({ hasText: '€45.00' })).toBeVisible()
   })
 })

@@ -305,9 +305,15 @@ sips -z 180 180 /tmp/icon.svg.png -o public/apple-touch-icon.png
 
 ---
 
-## Navigation — Group Settings Icon
+## Navigation — Group Section Tabs
 
-The group settings link in the section tabs is an **icon-only** link (gear SVG) positioned at the **far right** of the tab bar via `margin-left: auto`. It has `aria-label` for accessibility. Do not add text to this link.
+Group pages have two sticky navigation layers directly below the main topbar:
+1. **Group tabs bar** (`GroupTabsBar` component) — sticky at `top: 56px`, switches between groups.
+2. **Section tabs** (`nav.section-tabs`) — sticky at `top: 102px`, switches between sections within a group.
+
+Section tabs order: **Balances** · **Expenses** · **By Category** · ⚙ Settings (icon-only, far-right).
+
+The settings link is **icon-only** (gear SVG) at the **far right** via `margin-left: auto`. It has `aria-label`. Do not add text to it.
 
 ---
 
@@ -424,11 +430,14 @@ An agent must verify every item below before considering any implementation comp
 - Users can add unlimited custom categories per group. Each category has: **name**, **color** (from a predefined palette), and **icon** (chosen from a predefined icon set).
 - Every expense must belong to exactly one category. If no category is selected when adding an expense, it defaults to **General**.
 - The category selector in the Add Expense form is a **pill/chip selector** showing all group categories; General is pre-selected by default.
-- Categories are displayed in a **"By Category" section** on the group dashboard, directly below the Balances section.
-- The By Category section shows a **donut pie chart** (static/decorative, no click interaction) with an **all-time** breakdown of total spending per category.
-- The chart legend shows: colour dot · icon · category name · total amount (€) · percentage. Sorted by amount descending.
-- A **"+ Add category"** button (admin-only) is placed inline next to the "By Category" section heading. It opens a modal.
-- Categories are also manageable from the **group settings page** (admin-only section): add, edit name/colour/icon, delete non-default categories.
+- Expense list rows (in `/expenses` and the dashboard recent-expenses section) show a category badge (colour dot + name) in the meta line.
+- Recent expense rows on the dashboard are **clickable** and open the Edit Expense modal pre-filled with that expense's data.
+- The **"By Category" section** appears on both the Balances tab (dashboard) and as a dedicated **"By Category" tab** (`/groups/:id/categories`).
+- The By Category section shows a **donut pie chart** with a **monthly** (default) or **all-time** breakdown of spending per category.
+- The month selector (prev/next + short month label e.g. "Feb 2026") is placed **inline at the right of the "By Category" section heading**, visible only in monthly view.
+- The chart legend is expandable: clicking a legend row reveals the individual expenses for that category.
+- The legend shows: colour dot · icon · category name · total amount (€) · percentage. Sorted by amount descending.
+- **Add/Edit/Delete category** is available **only from the group settings page** (admin-only section). There is no "Add category" button on the dashboard or By Category tab.
 - The Add/Edit Category modal contains: name input, colour picker (preset swatches), icon picker (predefined grid of SVG icons).
 - **Icon set** (predefined, not user-extensible): General, Food, Home, Transport, Travel, Entertainment, Shopping, Health, Education, Utilities, Drinks, Work, Sports, Gifts, Tech.
 - **Colour palette** for categories (10 presets): indigo, amber, emerald, rose, sky, violet, orange, teal, pink, slate. Cannot be General's gray (#9ca3af), which is reserved.
