@@ -14,8 +14,7 @@
     "optional": "opcional",
     "required": "Requerido",
     "showMore": "Mostrar más",
-    "showLess": "Mostrar menos",
-    "retry": "Reintentar"
+    "showLess": "Mostrar menos"
   },
   "nav": {
     "home": "Gastos",

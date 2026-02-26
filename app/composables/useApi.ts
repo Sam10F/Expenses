@@ -1,29 +1,14 @@
 /**
- * Shared promise so that concurrent token refreshes are deduplicated —
- * used both for proactive pre-request refresh and reactive 401 retry.
+ * Shared promise so that concurrent 401 responses only trigger one token refresh,
+ * preventing parallel requests from invalidating each other's refresh tokens.
  */
 let _refreshPromise: Promise<boolean> | null = null
 
-/** Returns true if the JWT is missing, malformed, or within 60 s of its expiry. */
-function isJwtExpiring(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]!)) as { exp: number }
-    return Date.now() >= (payload.exp - 60) * 1000
-  }
-  catch {
-    return true
-  }
-}
-
 /**
  * Returns a fetch function pre-configured with the current user's Bearer token.
- *
- * Before every request the token is checked for imminent expiry and refreshed
- * proactively (within the 60-second window) so the server never receives a
- * stale token. On unexpected 401 responses a second refresh + retry is still
- * attempted as a belt-and-suspenders fallback. Both paths share the same
- * `_refreshPromise` singleton to avoid redundant refreshes across concurrent
- * requests.
+ * On 401 responses, refreshes the token (deduplicated across concurrent requests)
+ * and retries the original request once. Redirects to /auth/login if the session
+ * cannot be recovered.
  */
 export function useApi() {
   const authStore = useAuthStore()
@@ -42,16 +27,6 @@ export function useApi() {
     request: string,
     options?: Parameters<typeof baseFetch>[1],
   ): Promise<T> {
-    // Proactively refresh if the token is expired or about to expire (within
-    // 60 s). This prevents the server from receiving a stale token and avoids
-    // the extra round-trip that a reactive 401 retry would require.
-    if (authStore.token && isJwtExpiring(authStore.token) && authStore.refreshToken) {
-      if (!_refreshPromise) {
-        _refreshPromise = authStore.refresh().finally(() => { _refreshPromise = null })
-      }
-      await _refreshPromise
-    }
-
     try {
       return await baseFetch<T>(request, options) as unknown as T
     }
