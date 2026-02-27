@@ -10,6 +10,7 @@ useHead({
   htmlAttrs: { lang: 'en' },
   link: [
     { rel: 'manifest', href: '/manifest.webmanifest' },
+    { rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' },
     { rel: 'icon', type: 'image/png', href: '/favicon.png' },
     { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
   ],

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { promises as fs } from 'node:fs'
 import AxeBuilder from '@axe-core/playwright'
 import {
   createTestUser,
@@ -311,5 +312,75 @@ test.describe('Categories', () => {
     await page.getByRole('button', { name: /^all$/i }).click()
     await expect(page.locator('.legend-name').filter({ hasText: 'General' })).toBeVisible()
     await expect(page.locator('.legend-amount').filter({ hasText: '€45.00' })).toBeVisible()
+  })
+
+  test('Export CSV button is visible on categories page', async ({ page }) => {
+    await page.goto(`/groups/${groupId}/categories`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('button', { name: /export csv/i })).toBeVisible()
+  })
+
+  test('Export CSV in monthly view downloads only the selected month expenses', async ({ page }) => {
+    const today = new Date().toISOString().split('T')[0]!
+    const lastMonth = new Date()
+    lastMonth.setMonth(lastMonth.getMonth() - 1)
+    const lastMonthDate = lastMonth.toISOString().split('T')[0]!
+
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Current Month Cost', amount: 40, date: today,
+    })
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Last Month Cost', amount: 20, date: lastMonthDate,
+    })
+
+    await page.goto(`/groups/${groupId}/categories`)
+    await page.waitForLoadState('networkidle')
+
+    // Default is monthly — trigger download
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: /export csv/i }).click()
+    const download = await downloadPromise
+
+    expect(download.suggestedFilename()).toMatch(/\.csv$/)
+    expect(download.suggestedFilename()).not.toContain('all-time')
+
+    const filePath = await download.path()
+    const content = await fs.readFile(filePath!, 'utf-8')
+
+    expect(content).toContain('40.00')
+    expect(content).not.toContain('20.00')
+  })
+
+  test('Export CSV in all-time view downloads all expenses', async ({ page }) => {
+    const today = new Date().toISOString().split('T')[0]!
+    const lastMonth = new Date()
+    lastMonth.setMonth(lastMonth.getMonth() - 1)
+    const lastMonthDate = lastMonth.toISOString().split('T')[0]!
+
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Current Month Cost', amount: 40, date: today,
+    })
+    await createTestExpense(groupId, adminMemberId, defaultCategoryId, [adminMemberId, bobId], {
+      title: 'Last Month Cost', amount: 20, date: lastMonthDate,
+    })
+
+    await page.goto(`/groups/${groupId}/categories`)
+    await page.waitForLoadState('networkidle')
+
+    // Switch to all-time view
+    await page.getByRole('button', { name: /^all$/i }).click()
+
+    const downloadPromise2 = page.waitForEvent('download')
+    await page.getByRole('button', { name: /export csv/i }).click()
+    const download2 = await downloadPromise2
+
+    expect(download2.suggestedFilename()).toMatch(/all-time.*\.csv$/)
+
+    const filePath = await download2.path()
+    const content = await fs.readFile(filePath!, 'utf-8')
+
+    expect(content).toContain('40.00')
+    expect(content).toContain('20.00')
   })
 })

@@ -189,6 +189,7 @@
     "prevMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
     "default": "Predeterminada",
+    "exportCsv": "Exportar CSV",
     "edit": {
       "title": "Editar categoría"
     }

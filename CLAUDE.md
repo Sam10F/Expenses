@@ -438,6 +438,7 @@ An agent must verify every item below before considering any implementation comp
 - The chart legend is expandable: clicking a legend row reveals the individual expenses for that category.
 - The legend shows: colour dot · icon · category name · total amount (€) · percentage. Sorted by amount descending.
 - **Add/Edit/Delete category** is available **only from the group settings page** (admin-only section). There is no "Add category" button on the dashboard or By Category tab.
+- A **"Export CSV"** button appears in the By Category tab heading row. In monthly view it exports only the selected month's expenses; in all-time view it exports all expenses. Each CSV row contains: date (YYYY-MM-DD), title, category name, amount (2 d.p., no symbol), paid-by member name, and comma-separated names of included split members. Rows are sorted by date descending. Filename: `expenses-<group-slug>-<Mon-YYYY>.csv` or `expenses-<group-slug>-all-time.csv`. Logic lives in `app/composables/useCategoryExport.ts`.
 - The Add/Edit Category modal contains: name input, colour picker (preset swatches), icon picker (predefined grid of SVG icons).
 - **Icon set** (predefined, not user-extensible): General, Food, Home, Transport, Travel, Entertainment, Shopping, Health, Education, Utilities, Drinks, Work, Sports, Gifts, Tech.
 - **Colour palette** for categories (10 presets): indigo, amber, emerald, rose, sky, violet, orange, teal, pink, slate. Cannot be General's gray (#9ca3af), which is reserved.
