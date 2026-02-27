@@ -48,7 +48,7 @@
       <section class="page-section" :aria-labelledby="titleId">
         <div class="section-heading">
           <h2 :id="titleId" class="section-title">{{ t('categories.title') }}</h2>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
             <!-- Month selector inline (shown only in monthly view) -->
             <div v-if="selectedCategoryView === 'monthly'" class="category-month-nav" aria-live="polite">
               <button
@@ -72,15 +72,6 @@
                 </svg>
               </button>
             </div>
-            <!-- Export CSV -->
-            <button class="btn btn-secondary btn-sm" @click="exportCsv()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              {{ t('categories.exportCsv') }}
-            </button>
             <!-- View toggle pills -->
             <div class="category-view-toggle" role="group" :aria-label="t('categories.title')">
               <button
@@ -104,6 +95,17 @@
         </div>
 
         <CategoryPieChart :categories="categoryStats" :expenses="categoryViewExpenses" />
+
+        <div class="export-row">
+          <button class="btn btn-secondary btn-sm" @click="exportCsv()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            {{ t('categories.exportCsv') }}
+          </button>
+        </div>
       </section>
     </div>
 
@@ -292,5 +294,11 @@ async function handleExpenseSaved() { await refresh() }
   color: var(--color-text);
   min-width: 80px;
   text-align: center;
+}
+
+.export-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
 }
 </style>

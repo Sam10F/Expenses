@@ -58,19 +58,36 @@
         </div>
       </div>
 
-      <!-- Expense list -->
-      <div v-else class="card">
-        <ul role="list" style="list-style:none;padding:0;margin:0;">
-          <ExpenseListRow
-            v-for="exp in expComposable.expenses.value"
-            :key="exp.id"
-            :expense="exp"
-            @edit="handleEditExpense"
-            @delete="handleDeleteExpense"
-          />
-        </ul>
+      <!-- Expense list grouped by year → month -->
+      <div v-else>
+        <div
+          v-for="yearGroup in groupedExpenses"
+          :key="yearGroup.year"
+          class="expense-year-group"
+        >
+          <h2 class="expense-year-heading">{{ yearGroup.year }}</h2>
 
-        <div v-if="expComposable.hasMore.value" class="card-footer" style="text-align:center;">
+          <div
+            v-for="monthGroup in yearGroup.months"
+            :key="monthGroup.month"
+            class="expense-month-group"
+          >
+            <h3 class="expense-month-heading">{{ monthGroup.label }}</h3>
+            <div class="card">
+              <ul role="list" style="list-style:none;padding:0;margin:0;">
+                <ExpenseListRow
+                  v-for="exp in monthGroup.expenses"
+                  :key="exp.id"
+                  :expense="exp"
+                  @edit="handleEditExpense"
+                  @delete="handleDeleteExpense"
+                />
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="expComposable.hasMore.value" style="text-align:center;margin-top:16px;">
           <button
             class="btn btn-secondary btn-sm"
             :disabled="expComposable.loading.value"
@@ -137,6 +154,38 @@ const categories = computed(() => data.value?.[1] ?? [])
 // Expenses composable
 const expComposable = useExpenses(groupId)
 
+interface MonthGroup {
+  month:    number
+  label:    string
+  expenses: ExpenseWithDetails[]
+}
+
+interface YearGroup {
+  year:   number
+  months: MonthGroup[]
+}
+
+const { locale } = useI18n()
+
+const groupedExpenses = computed<YearGroup[]>(() => {
+  const groups: YearGroup[] = []
+  for (const exp of expComposable.expenses.value) {
+    const d    = new Date(`${exp.date}T00:00:00`)
+    const year  = d.getFullYear()
+    const month = d.getMonth() + 1
+    let yg = groups.find(g => g.year === year)
+    if (!yg) { yg = { year, months: [] }; groups.push(yg) }
+    let mg = yg.months.find(m => m.month === month)
+    if (!mg) {
+      const label = new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(d)
+      mg = { month, label, expenses: [] }
+      yg.months.push(mg)
+    }
+    mg.expenses.push(exp)
+  }
+  return groups
+})
+
 onMounted(() => {
   expComposable.fetchExpenses(0)
   store.fetchGroups()
@@ -172,3 +221,30 @@ async function handleSaved() {
   await expComposable.fetchExpenses(0)
 }
 </script>
+
+<style>
+.expense-year-group {
+  margin-bottom: 8px;
+}
+
+.expense-year-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 12px 0;
+  padding-top: 8px;
+}
+
+.expense-month-group {
+  margin-bottom: 16px;
+}
+
+.expense-month-heading {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  margin: 0 0 6px 0;
+}
+</style>
