@@ -1,32 +1,27 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '#types/supabase'
 
-let _adminClient: ReturnType<typeof createClient<Database>> | null = null
-
 /**
  * Returns a Supabase client with the service role key.
+ * A new client is created per call so that runtime config is always read fresh —
+ * avoids a stale singleton cached at cold-start before env vars are available.
  * Only call this from server-side code (server/api/**).
  */
 export function createSupabaseAdmin() {
-  if (_adminClient) return _adminClient
-
   const config = useRuntimeConfig()
   const url = config.public.supabaseUrl
-  // Prefer service role key; fall back to anon key (works because RLS allows anon access)
-  const key = config.supabaseServiceRoleKey || config.public.supabaseAnonKey
+  const key = config.supabaseServiceRoleKey
 
   if (!url || !key) {
     throw new Error(
-      'Supabase credentials not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in .env',
+      'Supabase credentials not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env',
     )
   }
 
-  _adminClient = createClient<Database>(url, key, {
+  return createClient<Database>(url, key, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
   })
-
-  return _adminClient
 }
