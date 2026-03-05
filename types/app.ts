@@ -159,6 +159,64 @@ export interface AddMemberPayload {
 }
 
 // ============================================================
+// Recurring Expenses
+// ============================================================
+
+export type RecurringFrequency = 'weekly' | 'monthly'
+
+export interface RecurringExpense {
+  id:           string
+  group_id:     string
+  created_by:   string | null
+  title:        string
+  amount:       number
+  currency:     string
+  paid_by:      string
+  category_id:  string | null
+  frequency:    RecurringFrequency
+  day_of_week:  number | null   // 0=Sun … 6=Sat (only when frequency='weekly')
+  day_of_month: number | null   // 1–28            (only when frequency='monthly')
+  is_active:    boolean
+  created_at:   string
+  updated_at:   string
+}
+
+export interface RecurringExpenseSplit {
+  id:                   string
+  recurring_expense_id: string
+  member_id:            string
+  amount:               number
+  is_included:          boolean
+}
+
+export interface RecurringSplitWithMember extends RecurringExpenseSplit {
+  member: Member
+}
+
+export interface RecurringExpenseWithDetails extends RecurringExpense {
+  paidByMember: Member
+  category:     Category | null
+  splits:       RecurringSplitWithMember[]
+}
+
+export interface CreateRecurringExpensePayload {
+  title:        string
+  amount:       number
+  paid_by:      string
+  category_id:  string
+  frequency:    RecurringFrequency
+  day_of_week:  number | null
+  day_of_month: number | null
+  splits: Array<{
+    member_id:   string
+    amount:      number
+    is_included: boolean
+  }>
+}
+
+export type UpdateRecurringExpensePayload = CreateRecurringExpensePayload & { id: string }
+
+// ============================================================
 // Color / icon constants
 // ============================================================
 

@@ -236,5 +236,38 @@
       "none": "Sin predeterminado (usar el último visitado)",
       "saved": "Guardado"
     }
+  },
+  "recurringExpenses": {
+    "title": "Gastos recurrentes",
+    "empty": {
+      "title": "Sin gastos recurrentes",
+      "description": "Añade un gasto recurrente para registrar pagos periódicos automáticamente."
+    },
+    "add": {
+      "title": "Añadir gasto recurrente",
+      "frequencyLabel": "Frecuencia",
+      "weekly": "Semanal",
+      "monthly": "Mensual",
+      "dayOfWeekLabel": "Día de la semana",
+      "dayOfMonthLabel": "Día del mes",
+      "dayOfMonthHint": "Día 1–28 (válido todos los meses)",
+      "days": {
+        "0": "Domingo",
+        "1": "Lunes",
+        "2": "Martes",
+        "3": "Miércoles",
+        "4": "Jueves",
+        "5": "Viernes",
+        "6": "Sábado"
+      }
+    },
+    "edit": {
+      "title": "Editar gasto recurrente"
+    },
+    "deleteConfirm": "¿Eliminar \"{title}\"? El gasto programado dejará de crearse.",
+    "frequency": {
+      "weekly": "Cada {day}",
+      "monthly": "Mensual el día {day}"
+    }
   }
 }

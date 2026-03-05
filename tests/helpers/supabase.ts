@@ -222,6 +222,7 @@ export async function cleanupStaleTestGroups(): Promise<void> {
       'name.ilike.Solo Expense%',
       'name.ilike.Invitation Test%',
       'name.ilike.User Settings Test%',
+      'name.ilike.Recurring Test%',
     ].join(','))
 }
 
@@ -329,6 +330,62 @@ export async function createTestInvitation(
 
   if (error || !data) throw new Error(`createTestInvitation: ${error?.message}`)
   return data.id
+}
+
+/**
+ * Create a recurring expense template with equal splits among the given member IDs.
+ * Returns the recurring expense ID.
+ */
+export async function createTestRecurringExpense(
+  groupId:    string,
+  paidById:   string,
+  categoryId: string,
+  memberIds:  string[],
+  options: {
+    title?:        string
+    amount?:       number
+    frequency?:    'weekly' | 'monthly'
+    day_of_week?:  number
+    day_of_month?: number
+  } = {},
+): Promise<string> {
+  const amount    = options.amount    ?? 50
+  const frequency = options.frequency ?? 'monthly'
+
+  const { data: rec, error: recErr } = await adminClient
+    .from('recurring_expenses')
+    .insert({
+      group_id:     groupId,
+      paid_by:      paidById,
+      category_id:  categoryId,
+      title:        options.title ?? 'Test Recurring Expense',
+      amount,
+      frequency,
+      day_of_week:  frequency === 'weekly'  ? (options.day_of_week  ?? 1) : null,
+      day_of_month: frequency === 'monthly' ? (options.day_of_month ?? 1) : null,
+      is_active:    true,
+    })
+    .select('id')
+    .single()
+
+  if (recErr || !rec) throw new Error(`createTestRecurringExpense: ${recErr?.message}`)
+
+  const splitAmount = Math.round((amount / memberIds.length) * 100) / 100
+
+  const { error: splitsErr } = await adminClient
+    .from('recurring_expense_splits')
+    .insert(
+      memberIds.map(id => ({
+        recurring_expense_id: rec.id,
+        member_id:            id,
+        amount:               splitAmount,
+        is_included:          true,
+      })),
+    )
+
+  if (splitsErr) throw new Error(`createTestRecurringExpense splits: ${splitsErr.message}`)
+
+  return rec.id
 }
 
 /**

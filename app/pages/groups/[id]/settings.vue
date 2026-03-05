@@ -151,6 +151,14 @@
         </div>
       </section>
 
+      <!-- Recurring expenses (visible to all, editable by admin) -->
+      <SettingsRecurringSection
+        :group-id="groupId"
+        :members="members"
+        :categories="categories"
+        :is-admin="isAdmin"
+      />
+
       <!-- Invite section (admin only) -->
       <SettingsInviteSection v-if="isAdmin" :group-id="groupId" />
 

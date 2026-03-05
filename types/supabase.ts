@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -273,12 +293,127 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_expense_splits: {
+        Row: {
+          amount: number
+          id: string
+          is_included: boolean
+          member_id: string
+          recurring_expense_id: string
+        }
+        Insert: {
+          amount: number
+          id?: string
+          is_included?: boolean
+          member_id: string
+          recurring_expense_id: string
+        }
+        Update: {
+          amount?: number
+          id?: string
+          is_included?: boolean
+          member_id?: string
+          recurring_expense_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_expense_splits_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expense_splits_recurring_expense_id_fkey"
+            columns: ["recurring_expense_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_expenses: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          day_of_month: number | null
+          day_of_week: number | null
+          frequency: string
+          group_id: string
+          id: string
+          is_active: boolean
+          paid_by: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency: string
+          group_id: string
+          id?: string
+          is_active?: boolean
+          paid_by: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency?: string
+          group_id?: string
+          id?: string
+          is_active?: boolean
+          paid_by?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_expense_from_recurring: {
+        Args: { recurring_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
@@ -407,7 +542,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+

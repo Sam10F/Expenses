@@ -17,18 +17,22 @@ export function useSplitCalculator(members: Ref<Member[]>, totalAmount: Ref<numb
   /** Re-initialise splits from the current member list with equal distribution. */
   function initSplits(overrides?: SplitEntry[]) {
     if (overrides) {
-      splits.value = overrides.map(o => ({
-        ...o,
-        // Watchers are always excluded regardless of override
-        is_included: isWatcher(o.member) ? false : o.is_included,
-        amount:      isWatcher(o.member) ? 0 : o.amount,
-      }))
-      const anyCustom = overrides.some(o => {
-        if (isWatcher(o.member)) return false
-        const includedCount = overrides.filter(s => s.is_included && !isWatcher(s.member)).length
-        const equal = includedCount > 0 ? Math.round((totalAmount.value / includedCount) * 100) / 100 : 0
-        return o.is_included && Math.abs(o.amount - equal) > 0.01
+      // Build a lookup from the saved splits
+      const overrideMap = new Map(overrides.map(o => [o.member.id, o]))
+      // Always produce an entry for every current member so no member is
+      // accidentally defaulted to is_included=true by recalculateEqual later.
+      splits.value = members.value.map((member) => {
+        if (isWatcher(member)) return { member, amount: 0, is_included: false }
+        const o = overrideMap.get(member.id)
+        if (o) return { member, is_included: o.is_included, amount: o.is_included ? o.amount : 0 }
+        // Member not present in saved splits → exclude by default
+        return { member, amount: 0, is_included: false }
       })
+      const includedCount = overrides.filter(s => s.is_included && !isWatcher(s.member)).length
+      const equal = includedCount > 0 ? Math.round((totalAmount.value / includedCount) * 100) / 100 : 0
+      const anyCustom = overrides.some(o =>
+        !isWatcher(o.member) && o.is_included && Math.abs(o.amount - equal) > 0.01,
+      )
       isCustom.value = anyCustom
     }
     else {

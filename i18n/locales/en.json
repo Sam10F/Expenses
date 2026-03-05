@@ -236,5 +236,38 @@
       "none": "No default (use last visited)",
       "saved": "Saved"
     }
+  },
+  "recurringExpenses": {
+    "title": "Recurring Expenses",
+    "empty": {
+      "title": "No recurring expenses",
+      "description": "Add a recurring expense to automatically track regular payments."
+    },
+    "add": {
+      "title": "Add Recurring Expense",
+      "frequencyLabel": "Frequency",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "dayOfWeekLabel": "Day of week",
+      "dayOfMonthLabel": "Day of month",
+      "dayOfMonthHint": "Day 1–28 (works in all months)",
+      "days": {
+        "0": "Sunday",
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday"
+      }
+    },
+    "edit": {
+      "title": "Edit Recurring Expense"
+    },
+    "deleteConfirm": "Delete \"{title}\"? The scheduled expense will stop being created.",
+    "frequency": {
+      "weekly": "Every {day}",
+      "monthly": "Monthly on the {day}"
+    }
   }
 }
