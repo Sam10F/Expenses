@@ -21,7 +21,12 @@ jobs:
         with:
           version: latest
 
+      - name: Link to project
+        run: supabase link --project-ref xkozeysyfamzeihtyilo --password ${{ secrets.SUPABASE_DB_PASSWORD }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
       - name: Apply pending migrations
-        run: supabase db push --project-ref xkozeysyfamzeihtyilo
+        run: supabase db push --linked --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
