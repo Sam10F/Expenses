@@ -140,6 +140,40 @@ test.describe('Categories', () => {
     await expect(page.locator('.legend-pct').filter({ hasText: '40%' })).toBeVisible()
   })
 
+  test('grand total is shown below pie chart when there are expenses', async ({ page }) => {
+    await createTestExpense(
+      groupId,
+      adminMemberId,
+      defaultCategoryId,
+      [adminMemberId, bobId],
+      { title: 'Total Test', amount: 70 },
+    )
+
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    // Switch to all-time view to ensure the expense is included
+    await page.getByRole('button', { name: /^all$/i }).click()
+
+    await expect(page.locator('.chart-total')).toBeVisible()
+    await expect(page.locator('.chart-total-amount')).toContainText('€70.00')
+  })
+
+  test('new category colors (red, green, blue, cyan, yellow, fuchsia) are available in add category modal', async ({ page }) => {
+    await page.goto(`/groups/${groupId}/settings`)
+    await page.waitForLoadState('networkidle')
+
+    await page.getByRole('button', { name: /add category/i }).click()
+
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+
+    for (const color of ['red', 'green', 'blue', 'cyan', 'yellow', 'fuchsia']) {
+      const swatch = dialog.getByRole('button', { name: color })
+      await expect(swatch).toBeVisible()
+    }
+  })
+
   test('custom category appears as chip in expense modal', async ({ page }) => {
     await createTestCategory(groupId, { name: 'Entertainment', color: 'violet', icon: 'entertainment' })
 

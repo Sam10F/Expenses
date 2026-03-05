@@ -227,7 +227,7 @@ test.describe('Expenses', () => {
     await expect(dialog).toBeVisible()
     await expect(dialog.getByLabel(/title/i)).toHaveValue('')
     const amountValue = await dialog.getByLabel(/amount/i).inputValue()
-    expect(amountValue === '' || amountValue === '0').toBeTruthy()
+    expect(amountValue).toBe('')
   })
 
   test('recent expense on dashboard shows category badge', async ({ page }) => {
@@ -285,6 +285,38 @@ test.describe('Expenses', () => {
 
     const titleInput = dialog.getByLabel(/title/i)
     await expect(titleInput).toHaveValue('Clickable Recent Expense')
+  })
+
+  test('amount input is empty by default when opening add expense modal', async ({ page }) => {
+    await page.goto(`/groups/${groupId}`)
+    await page.waitForLoadState('networkidle')
+
+    await page.getByRole('button', { name: /add expense/i }).click()
+
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+
+    const amountInput = dialog.getByLabel(/amount/i)
+    await expect(amountInput).toHaveValue('')
+  })
+
+  test('year and month headers show period totals in expense list', async ({ page }) => {
+    await createTestExpense(
+      groupId,
+      adminMemberId,
+      defaultCategoryId,
+      [adminMemberId, bobId],
+      { title: 'Total Test Expense', amount: 55 },
+    )
+
+    await page.goto(`/groups/${groupId}/expenses`)
+    await page.waitForLoadState('networkidle')
+
+    // Both the year and month heading badges should display €55.00
+    const periodTotals = page.locator('.expense-period-total')
+    await expect(periodTotals.first()).toContainText('€55.00')
+    // Two badges: one for year, one for month
+    await expect(periodTotals).toHaveCount(2)
   })
 
   test('load more button appears and loads additional expenses', async ({ page }) => {

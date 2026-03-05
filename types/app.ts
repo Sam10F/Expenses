@@ -232,6 +232,7 @@ export type MemberColor = typeof MEMBER_COLORS[number]
 
 export const CATEGORY_COLORS = [
   'indigo', 'amber', 'emerald', 'rose', 'sky', 'violet', 'orange', 'teal', 'pink', 'slate',
+  'red', 'green', 'blue', 'cyan', 'yellow', 'fuchsia',
 ] as const
 
 export type CategoryColor = typeof CATEGORY_COLORS[number]

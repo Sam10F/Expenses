@@ -34,6 +34,12 @@ export const CATEGORY_COLOR_HEX: Record<string, string> = {
   pink:    '#ec4899',
   slate:   '#64748b',
   gray:    '#9ca3af',
+  red:     '#ef4444',
+  green:   '#22c55e',
+  blue:    '#3b82f6',
+  cyan:    '#06b6d4',
+  yellow:  '#eab308',
+  fuchsia: '#d946ef',
 }
 
 /**

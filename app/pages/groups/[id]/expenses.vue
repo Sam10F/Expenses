@@ -65,14 +65,20 @@
           :key="yearGroup.year"
           class="expense-year-group"
         >
-          <h2 class="expense-year-heading">{{ yearGroup.year }}</h2>
+          <h2 class="expense-year-heading">
+            {{ yearGroup.year }}
+            <span class="expense-period-total">{{ formatCurrency(yearGroup.total) }}</span>
+          </h2>
 
           <div
             v-for="monthGroup in yearGroup.months"
             :key="monthGroup.month"
             class="expense-month-group"
           >
-            <h3 class="expense-month-heading">{{ monthGroup.label }}</h3>
+            <h3 class="expense-month-heading">
+              {{ monthGroup.label }}
+              <span class="expense-period-total">{{ formatCurrency(monthGroup.total) }}</span>
+            </h3>
             <div class="card">
               <ul role="list" style="list-style:none;padding:0;margin:0;">
                 <ExpenseListRow
@@ -124,6 +130,7 @@
 <script setup lang="ts">
 import { useGroupsStore } from '~/stores/groups'
 import { useExpenses } from '~/composables/useExpenses'
+import { formatCurrency } from '~/utils/currency'
 import type { Category, Member, ExpenseWithDetails } from '#types/app'
 
 definePageMeta({ layout: 'default' })
@@ -158,11 +165,13 @@ interface MonthGroup {
   month:    number
   label:    string
   expenses: ExpenseWithDetails[]
+  total:    number
 }
 
 interface YearGroup {
   year:   number
   months: MonthGroup[]
+  total:  number
 }
 
 const { locale } = useI18n()
@@ -174,14 +183,16 @@ const groupedExpenses = computed<YearGroup[]>(() => {
     const year  = d.getFullYear()
     const month = d.getMonth() + 1
     let yg = groups.find(g => g.year === year)
-    if (!yg) { yg = { year, months: [] }; groups.push(yg) }
+    if (!yg) { yg = { year, months: [], total: 0 }; groups.push(yg) }
     let mg = yg.months.find(m => m.month === month)
     if (!mg) {
       const label = new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(d)
-      mg = { month, label, expenses: [] }
+      mg = { month, label, expenses: [], total: 0 }
       yg.months.push(mg)
     }
     mg.expenses.push(exp)
+    mg.total += exp.amount
+    yg.total += exp.amount
   }
   return groups
 })
@@ -228,6 +239,9 @@ async function handleSaved() {
 }
 
 .expense-year-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 20px;
   font-weight: 700;
   color: var(--color-text);
@@ -240,11 +254,27 @@ async function handleSaved() {
 }
 
 .expense-month-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-secondary);
   margin: 0 0 6px 0;
+}
+
+.expense-period-total {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1px 7px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 </style>

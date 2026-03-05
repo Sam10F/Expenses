@@ -36,6 +36,12 @@
       </svg>
     </div>
 
+    <!-- Total amount -->
+    <div v-if="grandTotal > 0" class="chart-total">
+      <span class="chart-total-label">{{ t('categories.total') }}</span>
+      <span class="chart-total-amount">{{ formatCurrency(grandTotal) }}</span>
+    </div>
+
     <!-- Legend -->
     <ul
       class="chart-legend"
@@ -150,6 +156,10 @@ function expensesForCategory(categoryId: string): ExpenseWithDetails[] {
   return (props.expenses ?? []).filter(e => e.category_id === categoryId)
 }
 
+const grandTotal = computed(() =>
+  props.categories.reduce((sum, c) => sum + c.totalAmount, 0),
+)
+
 const sorted = computed(() =>
   [...props.categories]
     .filter(c => c.totalAmount > 0)
@@ -209,6 +219,29 @@ function iconPath(icon: string): string {
 .chart-wrapper {
   display: flex;
   justify-content: center;
+}
+
+.chart-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 4px;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
+}
+
+.chart-total-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.chart-total-amount {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
 }
 
 .chart-legend {

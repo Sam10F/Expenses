@@ -216,7 +216,7 @@ function isWatcherMember(m: Member): boolean {
 
 const form = reactive({
   title:       '',
-  amount:      0,
+  amount:      null as number | null,
   date:        todayISO(),
   paid_by:     '',
   category_id: '',
@@ -227,7 +227,7 @@ const saving = ref(false)
 
 // Split calculator
 const membersRef = toRef(props, 'members')
-const amountRef  = toRef(form, 'amount') as Ref<number>
+const amountRef  = computed(() => form.amount ?? 0)
 
 const splitCalc = useSplitCalculator(membersRef, amountRef)
 
@@ -262,7 +262,7 @@ watch([() => props.open, () => props.expense, () => props.prefill], ([open, exp,
     })))
   }
   else {
-    Object.assign(form, { title: '', amount: 0, date: todayISO() })
+    Object.assign(form, { title: '', amount: null, date: todayISO() })
     const currentUserMember = nonWatcherMembers.value.find(m => m.user_id === authStore.user?.id)
     form.paid_by     = currentUserMember?.id ?? nonWatcherMembers.value[0]?.id ?? ''
     form.category_id = props.categories.find(c => c.is_default)?.id ?? ''
@@ -275,7 +275,7 @@ function validate(): boolean {
   let valid = true
 
   if (!form.title.trim()) { errors.title = t('expenses.add.titleRequired'); valid = false }
-  if (!form.amount || form.amount <= 0) { errors.amount = t('expenses.add.amountInvalid'); valid = false }
+  if (form.amount === null || form.amount <= 0) { errors.amount = t('expenses.add.amountInvalid'); valid = false }
   if (!form.date) { errors.date = t('expenses.add.dateRequired'); valid = false }
   if (!splitCalc.isValid.value) {
     errors.splits = t('expenses.add.splitInvalid', {
@@ -293,7 +293,7 @@ async function handleSubmit() {
 
   const body = {
     title:       form.title.trim(),
-    amount:      form.amount,
+    amount:      form.amount ?? 0,
     date:        form.date,
     paid_by:     form.paid_by,
     category_id: form.category_id,
